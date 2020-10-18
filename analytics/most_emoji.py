@@ -19,14 +19,24 @@ for topic_name in cw["topic_name"]:
             }
             messages[topic_name][root_msg]["Reaction"].append(Reaction_Object)
 
+message_to_reaction = {}
 for topic in messages:
     for message_id in messages[topic]:
-        if "Reaction" in messages[topic][message_id] and "text" in messages[topic][message_id]:
-            print(messages[topic][message_id])
+        if messages[topic][message_id]["Reaction"] != [] and "text" in messages[topic][message_id]:
+            #print(len(messages[topic][message_id]["Reaction"]))
+            message_to_reaction[str(topic + "," + str(message_id))] = len(messages[topic][message_id]["Reaction"])
+            #print(messages[topic][message_id])
+
+sort_orders = sorted(message_to_reaction.items(), key=lambda x: x[1], reverse=True)
+
+for i in sort_orders:
+    print(i[0], i[1])
+    ummm_IDK = i[0].split(",")
+    print(messages[ummm_IDK[0]][int(ummm_IDK[1])])
+
 '''
 * Topic Name
     * MSG ID
         * Text
-        * Reaction ID
         * Reaction
 '''
