@@ -56,7 +56,7 @@ with open("complexityweekend.json", "r") as read_file:
                           'recipient': parse_recipient(p['msg'])})
             elif (p['msg']['content']['type']=="reaction"):
                 x.append({'id': p['msg']['conversation_id'] + "-" + str(p['msg']['content']['reaction']['m']),
-                          'topic': topic, 
+                          'topic': topic,
                           'type': 'reaction',
                           'time': str(p['msg']['sent_at']),
                           'message': "",
