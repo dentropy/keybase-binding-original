@@ -35,7 +35,8 @@ keybase chat -i getmessages.json
 * Total number of messages per
   * user
   * Channel
-  * User per channel
+* Total number of users per
+  * Topic
 * Total number of people interacting in each channel
 * Graph of activity over time
   * Total

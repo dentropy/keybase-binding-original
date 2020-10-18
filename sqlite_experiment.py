@@ -47,9 +47,53 @@ def get_characters_per_topic(topic_list):
         output_format.append([item, messages_per_topic[item]])
     return output_format
 
+'''
+* Total number of messages per
+  * user
+  * Channel
+'''
+
+def get_messages_per_user(user_list):
+    messages_per_user = {}
+    for user in user_list:
+        messages_per_user[user] = 0
+        user_messages = session.query(Messages).filter(Messages.txt_body != None).filter_by(from_user=user)
+        messages_per_user[user] = user_messages.count()
+    list_of_users = sorted(messages_per_user, key = messages_per_user.get, reverse=True)
+    output_format = []
+    for item in list_of_users:
+        output_format.append([item, messages_per_user[item]])
+    return output_format
+
+def get_messages_per_topic(topic_list):
+    messages_per_topic = {}
+    for topic in topic_list:
+        messages_per_topic[topic] = 0
+        topic_messages = session.query(Messages).filter(Messages.txt_body != None).filter_by(topic=topic)
+        messages_per_topic[topic] = topic_messages.count()
+    list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
+    output_format = []
+    for item in list_of_users:
+        output_format.append([item, messages_per_topic[item]])
+    return output_format
+
+def get_number_users_per_topic(topic_list):
+    messages_per_topic = {}
+    for topic in topic_list:
+        topic_messages = session.query(distinct(Messages.from_user)).filter(Messages.txt_body != None).filter_by(topic=topic)
+        messages_per_topic[topic] = topic_messages.count()
+    list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
+    output_format = []
+    for item in list_of_users:
+        output_format.append([item, messages_per_topic[item]])
+    return output_format
+
 user_list = get_list_all_users()
 topic_list = get_list_all_topics()
 characters_per_user = get_characters_per_user(user_list)
 character_per_topic = get_characters_per_topic(topic_list)
-for i in character_per_topic:
+messages_per_user = get_messages_per_user(user_list)
+messages_per_topic = get_messages_per_topic(topic_list)
+number_users_per_topic = get_number_users_per_topic(topic_list)
+for i in number_users_per_topic:
   print(i)
