@@ -29,17 +29,19 @@ keybase chat -i getmessages.json
 
 ## Problems moving forward
 
-* Total number of characters typed per
-  * User
-  * Channel
-* Total number of words typed per
+* Total number of characters per
   * User
   * Channel
 * Total number of messages per
   * user
   * Channel
+* Total number of words per
+  * User
+  * Channel
+  * Message per Topic
 * Total number of users per
   * Topic
+----- Above is completed
 * Total number of people interacting in each channel
 * Graph of activity over time
   * Total
@@ -55,6 +57,10 @@ keybase chat -i getmessages.json
   * User
 * Topic Modeling on channels and across channels
 * Sentiment Analysis
+
+## Tools moving forward
+
+<https://www.nltk.org/>
 
 ## Library inspiration Stuff
 
