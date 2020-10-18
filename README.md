@@ -29,15 +29,27 @@ keybase chat -i getmessages.json
 
 ## Problems moving forward
 
-* Topic Modeling on channels and across channels
-* Graph number of people interacting in each channel
-* Graph of where messages are distributed
-* Generate a graph of activity over time
-* Organize messages by most emojis
+* Total number of characters typed per
+  * User
+  * Channel
+* Total number of messages per
+  * user
+  * Channel
+  * User per channel
+* Total number of people interacting in each channel
+* Graph of activity over time
+  * Total
+  * Channel
+  * User
+  * User in Channel
+* Most emojis per
+  * Message
+  * Channel, adjusted for total messages
 * Which users are most replied too
-* Average message length by channel
-* Total numbers of characters typed per user
-* Total number of messages per use
+* Average message length per
+  * Channel
+  * User
+* Topic Modeling on channels and across channels
 
 ## Library inspiration Stuff
 
