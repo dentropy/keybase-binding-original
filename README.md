@@ -32,6 +32,9 @@ keybase chat -i getmessages.json
 * Total number of characters typed per
   * User
   * Channel
+* Total number of words typed per
+  * User
+  * Channel
 * Total number of messages per
   * user
   * Channel
@@ -51,6 +54,7 @@ keybase chat -i getmessages.json
   * Channel
   * User
 * Topic Modeling on channels and across channels
+* Sentiment Analysis
 
 ## Library inspiration Stuff
 

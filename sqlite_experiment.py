@@ -88,6 +88,7 @@ def get_number_users_per_topic(topic_list):
         output_format.append([item, messages_per_topic[item]])
     return output_format
 
+'''
 user_list = get_list_all_users()
 topic_list = get_list_all_topics()
 characters_per_user = get_characters_per_user(user_list)
@@ -95,5 +96,4 @@ character_per_topic = get_characters_per_topic(topic_list)
 messages_per_user = get_messages_per_user(user_list)
 messages_per_topic = get_messages_per_topic(topic_list)
 number_users_per_topic = get_number_users_per_topic(topic_list)
-for i in number_users_per_topic:
-  print(i)
+'''
