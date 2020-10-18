@@ -1,5 +1,5 @@
 import json
-cw = json.load(open('/home/dentropy/Documents/Projects/pykeybasebot/json/complexityweekend.json', 'r'))
+cw = json.load(open('../complexityweekend.json', 'r'))
 user_character_count = {}
 for topic_name in cw["topic_name"]:
     for message_num in range(len(cw["topic_name"][topic_name]["result"]["messages"])):
