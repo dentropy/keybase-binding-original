@@ -33,6 +33,11 @@ keybase chat -i getmessages.json
 * Graph number of people interacting in each channel
 * Graph of where messages are distributed
 * Generate a graph of activity over time
+* Organize messages by most emojis
+* Which users are most replied too
+* Average message length by channel
+* Total numbers of characters typed per user
+* Total number of messages per use
 
 ## Library inspiration Stuff
 
