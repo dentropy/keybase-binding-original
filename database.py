@@ -22,7 +22,6 @@ class Messages(Base):
 
 class DB(object):
     def __init__(self, database_url):
-        print("Create sqlite database")
         engine = create_engine(
             database_url,
             connect_args={'check_same_thread': False}
