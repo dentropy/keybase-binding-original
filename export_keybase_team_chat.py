@@ -52,3 +52,4 @@ for topic in complexity_weekend_teams:
 text_file = open("complexityweekend.json", "w")
 n = text_file.write(json.dumps(mah_messages))
 text_file.close()
+
