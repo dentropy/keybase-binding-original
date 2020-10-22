@@ -16,6 +16,9 @@ class Messages(Base):
     from_user = Column(String(128))
     sent_time = Column(Integer)
     txt_body = Column(String(4096))
+    word_count = Column(Integer)
+    num_urls = Column(Integer)
+    urls = Column(String(4096))
     reaction_body = Column(String(1024))
     reaction_reference = Column(Integer)
     

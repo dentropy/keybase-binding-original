@@ -2,6 +2,7 @@ from string import Template
 import subprocess
 import json
 from database import DB, Messages
+from urlextract import URLExtract
 
 class ExportKeybase():
     def get_team_channels(self,keybase_team_name):
@@ -60,6 +61,8 @@ class ExportKeybase():
         for topic in mah_messages["topic_name"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
                 if message["msg"]["content"]["type"] == "text":
+                    extractor = URLExtract()
+                    urls = extractor.find_urls(message["msg"]["content"]["text"]["body"])
                     db.session.add( Messages( 
                         team = "complexityweekend.oct2020", 
                         topic = topic,
@@ -67,7 +70,10 @@ class ExportKeybase():
                         msg_type = "text",
                         from_user = message["msg"]["sender"]["username"],
                         sent_time = message["msg"]["sent_at"],
-                        txt_body =  message["msg"]["content"]["text"]["body"]
+                        txt_body =  message["msg"]["content"]["text"]["body"],
+                        urls = json.dumps(urls),
+                        num_urls = len(urls),
+                        word_count = len(message["msg"]["content"]["text"]["body"].split(" "))
                         ))
         db.session.commit()
 
