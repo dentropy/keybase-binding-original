@@ -45,9 +45,11 @@ class GeneratedAnalyitcs():
             for message in user_messages:
                 messages_per_user[user] += len(message.txt_body)
         list_of_users = sorted(messages_per_user, key = messages_per_user.get, reverse=True)
-        self.characters_per_user = []
+        self.characters_per_user = {"users_list":[], "characters_list":[], "users":{}}
         for item in list_of_users:
-            self.characters_per_user.append([item, messages_per_user[item]])
+            self.characters_per_user["users_list"].append(item)
+            self.characters_per_user["characters_list"].append(messages_per_user[item])
+            self.characters_per_user["users"][item] = messages_per_user[item]
         return self.characters_per_user
 
     def get_characters_per_topic(self):
@@ -99,20 +101,15 @@ class GeneratedAnalyitcs():
         return self.num_users_per_topic
 
 '''
-user_list = get_list_all_users()
-topic_list = get_list_all_topics()
-characters_per_user = get_characters_per_user(user_list)
-character_per_topic = get_characters_per_topic(topic_list)
-messages_per_user = get_messages_per_user(user_list)
-messages_per_topic = get_messages_per_topic(topic_list)
-number_users_per_topic = get_number_users_per_topic(topic_list)
-print(user_list)
-print(topic_list)
-print(characters_per_user)
-print(character_per_topic)
-print(messages_per_topic)
-print(number_users_per_topic)
+GeneratedAnalyitcs Object Definition
+GeneratedAnalyitcs.user_list
+GeneratedAnalyitcs.topic_list
+GeneratedAnalyitcs.characters_per_user
+GeneratedAnalyitcs.characters_per_topic
+GeneratedAnalyitcs.messages_per_user
+GeneratedAnalyitcs.messages_per_topic
+GeneratedAnalyitcs.num_users_per_topic
 '''
 
 gen_an = GeneratedAnalyitcs("sqlite:///complexityweekend.sqlite")
-print(gen_an.user_list)
+print(gen_an.characters_per_user)
