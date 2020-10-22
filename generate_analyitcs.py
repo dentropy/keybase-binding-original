@@ -1,12 +1,22 @@
 '''
-GeneratedAnalyitcs Object
-GeneratedAnalyitcs.user_list
-GeneratedAnalyitcs.topic_list
-GeneratedAnalyitcs.characters_per_user
-GeneratedAnalyitcs.characters_per_topic
-GeneratedAnalyitcs.messages_per_user
-GeneratedAnalyitcs.messages_per_topic
-GeneratedAnalyitcs.num_users_per_topic
+* GeneratedAnalyitcs Object
+* GeneratedAnalyitcs.user_list
+* GeneratedAnalyitcs.topic_list
+* GeneratedAnalyitcs.characters_per_user
+  * users_list
+  * characters_list
+  * users
+      * {{users name}}
+        * num_characters
+* GeneratedAnalyitcs.characters_per_topic
+  * topics_list
+  * characters_list
+  * topic
+    * {{topic name}}
+      * num_characters
+* GeneratedAnalyitcs.messages_per_user
+* GeneratedAnalyitcs.messages_per_topic
+* GeneratedAnalyitcs.num_users_per_topic
 '''
 from database import DB, Messages
 from sqlalchemy import func
@@ -60,9 +70,12 @@ class GeneratedAnalyitcs():
             for message in topic_messages:
                 messages_per_topic[topic] += len(message.txt_body)
         list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
-        self.characters_per_topic = []
+        print(list_of_users)
+        self.characters_per_topic = {"topics_list":[], "characters_list":[], "topics":{}}
         for item in list_of_users:
-            self.characters_per_topic.append([item, messages_per_topic[item]])
+            self.characters_per_topic["topics_list"].append(item)
+            self.characters_per_topic["characters_list"].append(messages_per_topic[item])
+            self.characters_per_topic["topics"][item] = messages_per_topic[item]
         return self.characters_per_topic
 
     def get_messages_per_user(self):
@@ -100,16 +113,4 @@ class GeneratedAnalyitcs():
             self.num_users_per_topic.append([item, messages_per_topic[item]])
         return self.num_users_per_topic
 
-'''
-GeneratedAnalyitcs Object Definition
-GeneratedAnalyitcs.user_list
-GeneratedAnalyitcs.topic_list
-GeneratedAnalyitcs.characters_per_user
-GeneratedAnalyitcs.characters_per_topic
-GeneratedAnalyitcs.messages_per_user
-GeneratedAnalyitcs.messages_per_topic
-GeneratedAnalyitcs.num_users_per_topic
-'''
 
-gen_an = GeneratedAnalyitcs("sqlite:///complexityweekend.sqlite")
-print(gen_an.characters_per_user)
