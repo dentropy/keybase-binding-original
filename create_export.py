@@ -51,7 +51,9 @@ class ExportKeybase():
         complexity_weekend_teams = self.get_team_channels(keybase_team)
         mah_messages = {"topic_name":{}}
         for topic in complexity_weekend_teams:
-            mah_messages["topic_name"][topic] = self.get_team_chat_channel(keybase_team, topic)
+            result_msgs = self.get_team_chat_channel(keybase_team, topic)
+            result_msgs["result"]["messages"].reverse()
+            mah_messages["topic_name"][topic] = result_msgs
 
         text_file = open(output_file, "w")
         n = text_file.write(json.dumps(mah_messages))
