@@ -113,10 +113,10 @@ class GeneratedAnalyitcs():
         messages = {}
         topic_messages = self.db.session.query(Messages).filter(Messages.msg_type == "reaction")
         for message in topic_messages:
-            if message.reaction_reference not in messages:
-                messages[message.reaction_reference] = 1
+            if message.msg_reference not in messages:
+                messages[message.msg_reference] = 1
             else:
-                messages[message.reaction_reference] += 1
+                messages[message.msg_reference] += 1
         self.reaction_per_message = {
                                      "ordered_mesage_id":sorted(messages, key = messages.get, reverse=True), 
                                      "num_reaction" : messages
