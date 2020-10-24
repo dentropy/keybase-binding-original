@@ -59,16 +59,45 @@ class ExportKeybase():
         n = text_file.write(json.dumps(mah_messages))
         text_file.close()
 
-    def get_text_messages(self, mah_messages, db):
+
+    def dump_most_messages_to_db(self, mah_messages, db):
+        self.extractor = URLExtract()
         for topic in mah_messages["topic_name"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
-                if message["msg"]["content"]["type"] == "text":
-                    extractor = URLExtract()
-                    urls = extractor.find_urls(message["msg"]["content"]["text"]["body"])
+                if message["msg"]["content"]["type"] == "headline":
                     db.session.add( Messages( 
                         team = "complexityweekend.oct2020", 
                         topic = topic,
-         msg_id = message["msg"]["id"],
+                        msg_id = message["msg"]["id"],
+                        msg_type = "headline",
+                        txt_body =  message["msg"]["content"]["headline"]["headline"],
+                        from_user = message["msg"]["sender"]["username"],
+                        sent_time = message["msg"]["sent_at"],
+                        ))
+                elif message["msg"]["content"]["type"] == "join":
+                    db.session.add( Messages( 
+                        team = "complexityweekend.oct2020", 
+                        topic = topic,
+                        msg_id = message["msg"]["id"],
+                        msg_type = "join",
+                        from_user = message["msg"]["sender"]["username"],
+                        sent_time = message["msg"]["sent_at"],
+                        ))
+                elif message["msg"]["content"]["type"] == "leave":
+                    db.session.add( Messages( 
+                        team = "complexityweekend.oct2020", 
+                        topic = topic,
+                        msg_id = message["msg"]["id"],
+                        msg_type = "leave",
+                        from_user = message["msg"]["sender"]["username"],
+                        sent_time = message["msg"]["sent_at"],
+                        ))
+                elif message["msg"]["content"]["type"] == "text":
+                    urls = self.extractor.find_urls(message["msg"]["content"]["text"]["body"])
+                    db.session.add( Messages( 
+                        team = "complexityweekend.oct2020", 
+                        topic = topic,
+                         msg_id = message["msg"]["id"],
                         msg_type = "text",
                         from_user = message["msg"]["sender"]["username"],
                         sent_time = message["msg"]["sent_at"],
@@ -78,7 +107,7 @@ class ExportKeybase():
                         word_count = len(message["msg"]["content"]["text"]["body"].split(" "))
                         ))
         db.session.commit()
-
+    
     def get_reaction_messages(self, mah_messages, db):
         for topic in mah_messages["topic_name"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
@@ -99,39 +128,12 @@ class ExportKeybase():
                             reaction_reference = root_msg.first().id
                         ))
         db.session.commit()
-
-
-    def get_join_or_leave_messages(self, mah_messages, db):
-        for topic in mah_messages["topic_name"]:
-            for message in mah_messages["topic_name"][topic]["result"]["messages"]:
-                if message["msg"]["content"]["type"] == "join":
-                    db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
-                        topic = topic,
-                        msg_id = message["msg"]["id"],
-                        msg_type = "join",
-                        from_user = message["msg"]["sender"]["username"],
-                        sent_time = message["msg"]["sent_at"],
-                        ))
-                elif message["msg"]["content"]["type"] == "leave":
-                    db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
-                        topic = topic,
-                        msg_id = message["msg"]["id"],
-                        msg_type = "leave",
-                        from_user = message["msg"]["sender"]["username"],
-                        sent_time = message["msg"]["sent_at"],
-                        ))
-        db.session.commit()
         
     def convert_json_to_sql(self, json_file, sql_connection_string):
-        #db = DB("sqlite:///complexityweekend.sqlite")
         db = DB(sql_connection_string)
-        #mah_messages = json.load(open('./complexityweekend.json', 'r'))
         mah_messages = json.load(open(json_file, 'r'))
-        self.get_text_messages(mah_messages, db)
+        self.dump_most_messages_to_db(mah_messages,db)
         self.get_reaction_messages(mah_messages, db)
-        self.get_join_or_leave_messages(mah_messages,db)
         print("Conversion from json to sql complete")
         
 
