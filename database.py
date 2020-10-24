@@ -20,7 +20,8 @@ class Messages(Base):
     num_urls = Column(Integer)
     urls = Column(String(4096))
     reaction_body = Column(String(1024))
-    reaction_reference = Column(Integer)
+    msg_reference = Column(Integer)
+    userMentions = Column(String(1024))
     
 
 class DB(object):

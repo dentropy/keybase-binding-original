@@ -63,10 +63,18 @@ Your browser should open with a listing of the files associated with this projec
 
 ## TODO
 
+## Analitics
+
 * Finish the last couple methods in generate_analytics and then output their data in one or both of the jupyter notebooks
-* Import other message types such as Join, Edit, and Delete to the Database
+* Script to Export all attachments, must use keybase daemon
+* Hook up the database to graphql
 * Generate as many graphs as resonable using generate_graphs.ipynb
-* Write a script to generate all graphs and export them as images
+
+## Implimentaion Details
+
+* Not importing Pin Message type because unable to find refence to message being pinned
+* Not importing additional metadata such as device ID , device name, reactions within a message, and team_mentions though we may want to
+* Wherever json.dumps is used in create_export it may not be desireable
 
 ## Problems moving forward
 

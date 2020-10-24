@@ -60,7 +60,7 @@ class ExportKeybase():
         text_file.close()
 
 
-    def dump_most_messages_to_db(self, mah_messages, db):
+    def get_root_messages(self, mah_messages, db):
         self.extractor = URLExtract()
         for topic in mah_messages["topic_name"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
@@ -83,6 +83,51 @@ class ExportKeybase():
                         from_user = message["msg"]["sender"]["username"],
                         sent_time = message["msg"]["sent_at"],
                         ))
+                elif message["msg"]["content"]["type"] == "metadata":
+                    db.session.add( Messages( 
+                        team = "complexityweekend.oct2020", 
+                        topic = topic,
+                        msg_id = message["msg"]["id"],
+                        msg_type = "metadata",
+                        from_user = message["msg"]["sender"]["username"],
+                        txt_body =  json.dumps(message["msg"]["content"]["metadata"]),
+                        sent_time = message["msg"]["sent_at"]
+                        ))
+                elif message["msg"]["content"]["type"] == "attachment":
+                    db.session.add( Messages( 
+                        team = "complexityweekend.oct2020", 
+                        topic = topic,
+                        msg_id = message["msg"]["id"],
+                        msg_type = "attachment",
+                        from_user = message["msg"]["sender"]["username"],
+                        txt_body =  json.dumps(message["msg"]["content"]["attachment"]),
+                        sent_time = message["msg"]["sent_at"]
+                        ))
+                elif message["msg"]["content"]["type"] == "unfurl":
+                    db.session.add( Messages( 
+                        team = "complexityweekend.oct2020", 
+                        topic = topic,
+                        msg_id = message["msg"]["id"],
+                        msg_type = "unfurl",
+                        from_user = message["msg"]["sender"]["username"],
+                        txt_body =  json.dumps(message["msg"]["content"]["unfurl"]),
+                        sent_time = message["msg"]["sent_at"]
+                        ))
+                elif message["msg"]["content"]["type"] == "system":
+                    if "at_mention_usernames" in message["msg"]:
+                        at_mention_usernames = json.dumps(message["msg"]["at_mention_usernames"])
+                    else:
+                        at_mention_usernames = None
+                    db.session.add( Messages( 
+                        team = "complexityweekend.oct2020", 
+                        topic = topic,
+                        msg_id = message["msg"]["id"],
+                        msg_type = "system",
+                        from_user = message["msg"]["sender"]["username"],
+                        txt_body =  json.dumps(message["msg"]["content"]["system"]),
+                        sent_time = message["msg"]["sent_at"],
+                        userMentions = at_mention_usernames
+                        ))
                 elif message["msg"]["content"]["type"] == "leave":
                     db.session.add( Messages( 
                         team = "complexityweekend.oct2020", 
@@ -92,20 +137,44 @@ class ExportKeybase():
                         from_user = message["msg"]["sender"]["username"],
                         sent_time = message["msg"]["sent_at"],
                         ))
-                elif message["msg"]["content"]["type"] == "text":
-                    urls = self.extractor.find_urls(message["msg"]["content"]["text"]["body"])
+                elif message["msg"]["content"]["type"] == "delete":
                     db.session.add( Messages( 
                         team = "complexityweekend.oct2020", 
                         topic = topic,
-                         msg_id = message["msg"]["id"],
-                        msg_type = "text",
+                        msg_id = message["msg"]["id"],
+                        msg_type = "delete",
                         from_user = message["msg"]["sender"]["username"],
                         sent_time = message["msg"]["sent_at"],
-                        txt_body =  message["msg"]["content"]["text"]["body"],
-                        urls = json.dumps(urls),
-                        num_urls = len(urls),
-                        word_count = len(message["msg"]["content"]["text"]["body"].split(" "))
+                        msg_reference = message["msg"]["content"]["delete"]["messageIDs"][0]
                         ))
+                elif message["msg"]["content"]["type"] == "text":
+                    urls = self.extractor.find_urls(message["msg"]["content"]["text"]["body"])
+                    if len(urls) == 0:
+                        db.session.add( Messages( 
+                            team = "complexityweekend.oct2020", 
+                            topic = topic,
+                            msg_id = message["msg"]["id"],
+                            msg_type = "text",
+                            from_user = message["msg"]["sender"]["username"],
+                            sent_time = message["msg"]["sent_at"],
+                            txt_body =  message["msg"]["content"]["text"]["body"],
+                            word_count = len(message["msg"]["content"]["text"]["body"].split(" ")),
+                            userMentions = json.dumps(message["msg"]["content"]["text"]["userMentions"])
+                            ))
+                    else:
+                        db.session.add( Messages( 
+                            team = "complexityweekend.oct2020", 
+                            topic = topic,
+                            msg_id = message["msg"]["id"],
+                            msg_type = "text",
+                            from_user = message["msg"]["sender"]["username"],
+                            sent_time = message["msg"]["sent_at"],
+                            txt_body =  message["msg"]["content"]["text"]["body"],
+                            urls = json.dumps(urls),
+                            num_urls = len(urls),
+                            word_count = len(message["msg"]["content"]["text"]["body"].split(" ")),
+                            userMentions = json.dumps(message["msg"]["content"]["text"]["userMentions"])
+                            ))
         db.session.commit()
     
     def get_reaction_messages(self, mah_messages, db):
@@ -115,8 +184,6 @@ class ExportKeybase():
                     root_msg_id = message["msg"]["content"]["reaction"]["m"]
                     root_msg = db.session.query(Messages).filter_by(topic=topic).filter_by(msg_id = root_msg_id)
                     if root_msg.count() == 1:
-                        print(root_msg.first().id)
-                        print(message["msg"]["content"]["reaction"]["b"])
                         db.session.add( Messages( 
                             team = "complexityweekend.oct2020", 
                             topic = topic,
@@ -125,14 +192,28 @@ class ExportKeybase():
                             from_user = message["msg"]["sender"]["username"],
                             sent_time = message["msg"]["sent_at"],
                             reaction_body =  message["msg"]["content"]["reaction"]["b"],
-                            reaction_reference = root_msg.first().id
+                            msg_reference = root_msg.first().id
+                        ))
+                if message["msg"]["content"]["type"] == "edit":
+                    root_msg_id = message["msg"]["content"]["edit"]["messageID"]
+                    root_msg = db.session.query(Messages).filter_by(topic=topic).filter_by(msg_id = root_msg_id)
+                    if root_msg.count() == 1:
+                        db.session.add( Messages( 
+                            team = "complexityweekend.oct2020", 
+                            topic = topic,
+                            msg_id = message["msg"]["id"],
+                            msg_type = "edit",
+                            txt_body =  message["msg"]["content"]["edit"]["body"],
+                            from_user = message["msg"]["sender"]["username"],
+                            sent_time = message["msg"]["sent_at"],
+                            msg_reference = root_msg.first().id
                         ))
         db.session.commit()
         
     def convert_json_to_sql(self, json_file, sql_connection_string):
         db = DB(sql_connection_string)
         mah_messages = json.load(open(json_file, 'r'))
-        self.dump_most_messages_to_db(mah_messages,db)
+        self.get_root_messages(mah_messages,db)
         self.get_reaction_messages(mah_messages, db)
         print("Conversion from json to sql complete")
         
