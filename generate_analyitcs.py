@@ -8,6 +8,7 @@ class GeneratedAnalyitcs():
         self.get_messages()
         self.get_list_all_users()
         self.get_list_all_topics()
+        '''
         self.get_characters_per_user()
         self.get_characters_per_topic()
         self.get_messages_per_user()
@@ -16,7 +17,7 @@ class GeneratedAnalyitcs():
         self.get_reaction_per_message()
         self.get_reaction_sent_per_user()
         self.get_reaction_type_popularity()
-        
+        '''
 
     def get_messages(self):
         text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
@@ -142,21 +143,60 @@ class GeneratedAnalyitcs():
                 self.reaction_popularity_map["reactions"][reaction.reaction_body] += 1
         self.reaction_popularity_map["sorted"] = sorted(self.reaction_popularity_map["reactions"], key = self.reaction_popularity_map["reactions"].get, reverse=True), 
 
-    def get_reaction_poplarity_per_topic(self):
-        pass
+    def get_reaction_poplarity_topic(self, topic):
+        # Get all reactions in each topic
+        reaction_popularity = {"reactions":{}, "list":{}}
+        reaction_messages = self.db.session.query(Messages.reaction_body).filter(Messages.topic == topic).filter(Messages.msg_type == "reaction")
+        for reaction in reaction_messages:
+            if reaction[0] not in reaction_popularity["reactions"]:
+                reaction_popularity["reactions"][reaction[0]] = 1
+            else:
+                reaction_popularity["reactions"][reaction[0]] += 1
+        reaction_popularity["list"] = sorted(reaction_popularity["reactions"], key = reaction_popularity["reactions"].get, reverse=True)
+        return reaction_popularity
 
-    def get_all_user_message_id(self):
-        pass
+    def get_all_user_message_id(self, user):
+        user_messages = {"text":[], "reaction":[], "attachment":[]}
+        mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "text")
+        for message in mah_messages:
+            user_messages["text"].append(message.id)
+        mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
+        for message in mah_messages:
+            user_messages["reaction"].append(message.id)
+        mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "attachment")
+        for message in mah_messages:
+            user_messages["attachment"].append(message.id)
+        return user_messages
 
     def get_user_sent_most_reactions(self):
-        # Need get_all_user_message_id
-        pass
+        self.reactions_per_user = {"users_reactions":{}, "users_ordered":[]}
+        for user in self.user_list:
+            mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
+            self.reactions_per_user["users_reactions"][user] = mah_messages.count()
+        self.reactions_per_user["users_orderssion.query(User).get(1)ed"] = sorted(self.reactions_per_user["users_reactions"], key = self.reactions_per_user["users_reactions"].get, reverse=True)
+        return self.reactions_per_user
 
     def get_user_recieved_most_reactions(self):
         # Need get_all_user_message_id
-        pass
+        self.recieved_most_reactions = {"users_reactions":{}, "users_ordered":[]}
+        reaction_messages = self.db.session.query(Messages).filter(Messages.msg_type == "reaction")
+        for message in reaction_messages:
+            mah_message = self.db.session.query(Messages).get(message.msg_reference)
+            if mah_message.from_user not in self.recieved_most_reactions["users_reactions"]:
+                self.recieved_most_reactions["users_reactions"][mah_message.from_user] = 1
+            else:
+                self.recieved_most_reactions["users_reactions"][mah_message.from_user] += 1
+        self.recieved_most_reactions["users_orderd"] = sorted(self.recieved_most_reactions["users_reactions"], key = self.recieved_most_reactions["users_reactions"].get, reverse=True)
+        return self.recieved_most_reactions
 
-
-    def get_reaction_type_popularity_per_user(self):
-        # Need get_all_user_message_id
-        pass
+    def get_reaction_type_popularity_per_user(self, user):
+        user_used_reactions = {"users_reactions":{}, "reactions_ordered":[]}
+        mah_reactions = self.db.session.query(Messages).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
+        for reaction in mah_reactions:
+            if reaction.reaction_body not in user_used_reactions["users_reactions"]:
+                user_used_reactions["users_reactions"][reaction.reaction_body] = 1
+            else:
+                user_used_reactions["users_reactions"][reaction.reaction_body] += 1
+        user_used_reactions["reactions_ordered"] = sorted(user_used_reactions["users_reactions"], key = user_used_reactions["users_reactions"].get, reverse=True)
+        return user_used_reactions
+                

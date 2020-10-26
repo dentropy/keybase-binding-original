@@ -31,6 +31,7 @@ Your browser should open with a listing of the files associated with this projec
 
 ## GeneratedAnalyitcs Object
 
+## DATA
 * GeneratedAnalyitcs.messages
   * {{message.id}}
     * team
@@ -60,6 +61,28 @@ Your browser should open with a listing of the files associated with this projec
 * GeneratedAnalyitcs.reaction_sent_per_user
   * ordered_user
   * user_to_reaction
+* GeneratedAnalyitcs.reaction_popularity_map
+  * reactions
+  * sorted
+* GeneratedAnalyitcs.reactions_per_user = {"users_reactions":{}, "users_ordered":[]}
+* GeneratedAnalytics.recieved_most_reactions = {"users_reactions":{}, "users_ordered":[]}
+
+## Functions
+
+* GeneratedAnalyitcs.get_reaction_poplarity_topic("TOPIC NAME")
+  * reactions
+    * dicitonary
+  * list
+    * well a list
+* GeneratedAnalyitcs.get_all_user_message_id("USERS USERNAME")
+  * text
+    * list
+  * reaction
+    * list
+  * attachment
+    * list
+* GeneratedAnalyitcs.get_reaction_type_popularity_per_user("USERS USERNAME")
+  * {"users_reactions":{}, "reactions_ordered":[]}
 
 ## TODO
 
