@@ -8,7 +8,6 @@ class GeneratedAnalyitcs():
         self.get_messages()
         self.get_list_all_users()
         self.get_list_all_topics()
-        '''
         self.get_characters_per_user()
         self.get_characters_per_topic()
         self.get_messages_per_user()
@@ -17,7 +16,6 @@ class GeneratedAnalyitcs():
         self.get_reaction_per_message()
         self.get_reaction_sent_per_user()
         self.get_reaction_type_popularity()
-        '''
 
     def get_messages(self):
         text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
