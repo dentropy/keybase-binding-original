@@ -1,5 +1,6 @@
 from database import DB, Messages
 from sqlalchemy import func
+import pandas as pd
 from sqlalchemy import distinct
 
 class GeneratedAnalytics():
@@ -46,17 +47,17 @@ class GeneratedAnalytics():
         return self.topic_list
 
     def get_characters_per_user(self):
-        messages_per_user = {}
+        characters_per_message = {}
         for user in self.user_list:
-            messages_per_user[user] = 0
+            characters_per_message[user] = 0
             user_messages = self.db.session.query(Messages).filter(Messages.txt_body != None).filter_by(from_user=user)
             for message in user_messages:
-                messages_per_user[user] += len(message.txt_body)
-        list_of_users = sorted(messages_per_user, key = messages_per_user.get, reverse=True)
-        self.characters_per_user = {"users_list":[], "characters_list":[]}
+                characters_per_message[user] += len(message.txt_body)
+        list_of_users = sorted(characters_per_message, key = characters_per_message.get, reverse=True)
+        self.characters_per_user = {"user": [], "characters_per_user": []}
         for item in list_of_users:
-            self.characters_per_user["users_list"].append(item)
-            self.characters_per_user["characters_list"].append(messages_per_user[item])
+            self.characters_per_user["user"].append(item)
+            self.characters_per_user["characters_per_user"].append(characters_per_message[item])
         return self.characters_per_user
 
     def get_characters_per_topic(self):
@@ -67,10 +68,10 @@ class GeneratedAnalytics():
             for message in topic_messages:
                 messages_per_topic[topic] += len(message.txt_body)
         list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
-        self.characters_per_topic = {"topics_list":[], "characters_list":[]}
+        self.characters_per_topic = {"topic": [], "characters_per_topic": []}
         for item in list_of_users:
-            self.characters_per_topic["topics_list"].append(item)
-            self.characters_per_topic["characters_list"].append(messages_per_topic[item])
+            self.characters_per_topic["topic"].append(item)
+            self.characters_per_topic["characters_per_topic"].append(messages_per_topic[item])
         return self.characters_per_topic
 
     def get_messages_per_user(self):
@@ -80,10 +81,10 @@ class GeneratedAnalytics():
             user_messages = self.db.session.query(Messages).filter(Messages.txt_body != None).filter_by(from_user=user)
             messages_per_user[user] = user_messages.count()
         list_of_users = sorted(messages_per_user, key = messages_per_user.get, reverse=True)
-        self.messages_per_user = {"users_list":[], "messages_list":[]}
+        self.messages_per_user = {"user": [], "messages_per_user": []}
         for item in list_of_users:
-            self.messages_per_user["users_list"].append(item)
-            self.messages_per_user["messages_list"].append(messages_per_user[item])
+            self.messages_per_user["user"].append(item)
+            self.messages_per_user["messages_per_user"].append(messages_per_user[item])
         return self.messages_per_user
 
     def get_messages_per_topic(self):
@@ -93,10 +94,10 @@ class GeneratedAnalytics():
             topic_messages = self.db.session.query(Messages).filter(Messages.txt_body != None).filter_by(topic=topic)
             messages_per_topic[topic] = topic_messages.count()
         list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
-        self.messages_per_topic = {"topics_list":[], "messages_list":[]}
+        self.messages_per_topic = {"topic": [], "messages_per_topic": []}
         for item in list_of_users:
-            self.messages_per_topic["topics_list"].append(item)
-            self.messages_per_topic["messages_list"].append(messages_per_topic[item])
+            self.messages_per_topic["topic"].append(item)
+            self.messages_per_topic["messages_per_topic"].append(messages_per_topic[item])
         return self.messages_per_topic
 
     def get_number_users_per_topic(self):
@@ -105,7 +106,7 @@ class GeneratedAnalytics():
             topic_messages = self.db.session.query(distinct(Messages.from_user)).filter(Messages.txt_body != None).filter_by(topic=topic)
             messages_per_topic[topic] = topic_messages.count()
         list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
-        self.number_users_per_topic = {"users_list":[], "topics_list":[]}
+        self.number_users_per_topic = {"users_list": [], "topics_list": []}
         for item in list_of_users:
             self.number_users_per_topic["users_list"].append(item)
             self.number_users_per_topic["topics_list"].append(messages_per_topic[item])
@@ -202,10 +203,34 @@ class GeneratedAnalytics():
         user_used_reactions["reactions_ordered"] = sorted(user_used_reactions["users_reactions"], key = user_used_reactions["users_reactions"].get, reverse=True)
         return user_used_reactions
 
-    # def get_messages_by_user(self):
-        # Return
-        # text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
-        # print(text_messages)
-        # print(self.get_list_all_users())
+    def get_message_data_frames(self, offset_time=0):
+        # Return Pandas data frame table
+        text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
+        message_data = {
+            "user": [],
+            "msg_id": [],
+            "time": [],
+            "team": [],
+            "topic": [],
+            "text": [],
+            "word_count": []
+        }
+        cu = pd.DataFrame(data=self.get_characters_per_user())
+        mu = pd.DataFrame(data=self.get_messages_per_user())
+        ct = pd.DataFrame(data=self.get_characters_per_topic())
+        mt = pd.DataFrame(data=self.get_messages_per_topic())
+        for msg in text_messages:
+            message_data["user"].append(msg.from_user)
+            message_data["msg_id"].append(msg.msg_id)
+            message_data["time"].append(msg.sent_time-offset_time)
+            message_data["team"].append(msg.team)
+            message_data["topic"].append(msg.topic)
+            message_data["text"].append(msg.txt_body)
+            message_data["word_count"].append(msg.word_count)
+        df = pd.DataFrame(data=message_data)
+        df = pd.merge(df, cu, on="user", how="left")
+        df = pd.merge(df, mu, on="user", how="left")
+        df = pd.merge(df, ct, on="topic", how="left")
+        pandas_table = pd.merge(df, mt, on="topic", how="left")
+        return pandas_table
 
-        # return ncharacter_dict
