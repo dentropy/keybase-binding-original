@@ -1,6 +1,10 @@
+# Do not store data on this repository
 *.json
 *.sqlite
 *.csv
+
+# Test python script for local development
+test.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
