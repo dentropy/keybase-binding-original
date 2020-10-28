@@ -30,6 +30,13 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# PyCharm
+.idea
+
+# PyKeyBaseBot
+#  Assuming we want official changes to this etc. on a different repo.
+pykeybasebot/
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.

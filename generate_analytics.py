@@ -2,12 +2,15 @@ from database import DB, Messages
 from sqlalchemy import func
 from sqlalchemy import distinct
 
-class GeneratedAnalyitcs():
+class GeneratedAnalytics():
     def __init__(self, db_url):
         self.db = DB(db_url)
         self.get_messages()
+        print("Loaded " + str(len(self.messages)) + " messages")
         self.get_list_all_users()
+        print("--> from " + str(len(self.user_list)) + " users")
         self.get_list_all_topics()
+        print("--> spanning " + str(len(self.topic_list)) + " topics")
         self.get_characters_per_user()
         self.get_characters_per_topic()
         self.get_messages_per_user()
@@ -16,6 +19,7 @@ class GeneratedAnalyitcs():
         self.get_reaction_per_message()
         self.get_reaction_sent_per_user()
         self.get_reaction_type_popularity()
+        print("Finished initializing analytics object.")
 
     def get_messages(self):
         text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
@@ -93,7 +97,7 @@ class GeneratedAnalyitcs():
         for item in list_of_users:
             self.messages_per_topic["topics_list"].append(item)
             self.messages_per_topic["messages_list"].append(messages_per_topic[item])
-        return self.messages_per_user
+        return self.messages_per_topic
 
     def get_number_users_per_topic(self):
         messages_per_topic = {}
@@ -197,4 +201,11 @@ class GeneratedAnalyitcs():
                 user_used_reactions["users_reactions"][reaction.reaction_body] += 1
         user_used_reactions["reactions_ordered"] = sorted(user_used_reactions["users_reactions"], key = user_used_reactions["users_reactions"].get, reverse=True)
         return user_used_reactions
-                
+
+    # def get_messages_by_user(self):
+        # Return
+        # text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
+        # print(text_messages)
+        # print(self.get_list_all_users())
+
+        # return ncharacter_dict
