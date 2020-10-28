@@ -2,6 +2,7 @@
 *.json
 *.sqlite
 *.csv
+MDLib/
 
 # Test python script for local development
 test.py
