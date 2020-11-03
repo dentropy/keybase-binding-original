@@ -32,57 +32,31 @@ Your browser should open with a listing of the files associated with this projec
 ## GeneratedAnalyitcs Object
 
 ## DATA
-* GeneratedAnalyitcs.messages
-  * {{message.id}}
-    * team
-    * from_user
-    * topic
-    * txt_body
-* GeneratedAnalyitcs.user_list
-* GeneratedAnalyitcs.topic_list
-* GeneratedAnalyitcs.characters_per_user
-  * users_list
-  * characters_list
-* GeneratedAnalyitcs.characters_per_topic
-  * topics_list
-  * characters_list
-* GeneratedAnalyitcs.messages_per_user
-  * users_list
-  * messages_list
-* GeneratedAnalyitcs.messages_per_topic
-  * topics_list
-  * messages_list
-* GeneratedAnalyitcs.num_users_per_topic
-  * users_list
-  * topics_list
-* GeneratedAnalyitcs.reaction_per_message
-  * ordered_mesage_id
-  * num_reaction
-* GeneratedAnalyitcs.reaction_sent_per_user
-  * ordered_user
-  * user_to_reaction
-* GeneratedAnalyitcs.reaction_popularity_map
-  * reactions
-  * sorted
+
+* GeneratedAnalyitcs.user_list = []
+* GeneratedAnalyitcs.topic_list = []
+* GeneratedAnalyitcs.characters_per_user = {"user": [], "characters_per_user": []}
+* GeneratedAnalyitcs.characters_per_topic = {"topic": [], "characters_per_topic": []}
+* GeneratedAnalyitcs.messages_per_user = {"user": [], "messages_per_user": []}
+* GeneratedAnalyitcs.messages_per_topic = {"topic": [], "messages_per_topic": []}
+* GeneratedAnalyitcs.number_users_per_topic = {"users_list": [], "topics_list": []}
+* GeneratedAnalyitcs.reaction_per_message  = {"ordered_mesage_id":[], "user_to_reaction":[]}
+* GeneratedAnalyitcs.reaction_sent_per_user = {"ordered_user":[], "user_to_reaction":[]}
+* GeneratedAnalyitcs.reaction_popularity_map = {"reactions":{}}
 * GeneratedAnalyitcs.reactions_per_user = {"users_reactions":{}, "users_ordered":[]}
 * GeneratedAnalytics.recieved_most_reactions = {"users_reactions":{}, "users_ordered":[]}
+* GeneratedAnalytics.edits_per_user = {"users":{}, "ordered_users":[], "ordered_num_edits":[]}
+* GeneratedAnalytics.edits_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_edits":[]}
+* GeneratedAnalytics.deletes_per_user = {"users":{}, "ordered_users":[], "ordered_num_deletes":[]}
+* GeneratedAnalytics.deletes_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_deletes":[]}
+* GeneratedAnalytics.who_edits_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
+## Methods
 
-## Functions
-
-* GeneratedAnalyitcs.get_reaction_poplarity_topic("TOPIC NAME")
-  * reactions
-    * dicitonary
-  * list
-    * well a list
-* GeneratedAnalyitcs.get_all_user_message_id("USERS USERNAME")
-  * text
-    * list
-  * reaction
-    * list
-  * attachment
-    * list
-* GeneratedAnalyitcs.get_reaction_type_popularity_per_user("USERS USERNAME")
-  * {"users_reactions":{}, "reactions_ordered":[]}
+* GeneratedAnalyitcs.get_message(MESSAGE_ID_NUM)
+* GeneratedAnalyitcs.get_num_messages_from_user("USERS USERNAME") = {"edit": INT, "text": INT, "delete": INT}
+* GeneratedAnalyitcs.get_reaction_poplarity_topic("TOPIC NAME") = {"reactions":{}, "list":[]}
+* GeneratedAnalyitcs.get_all_user_message_id("USERS USERNAME") = {"users_reactions":{}, "users_ordered":[]}
+* GeneratedAnalyitcs.get_reaction_type_popularity_per_user("USERS USERNAME") = {"users_reactions":{}, "reactions_ordered":[]}
 
 ## TODO
 

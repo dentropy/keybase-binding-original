@@ -6,8 +6,6 @@ from sqlalchemy import distinct
 class GeneratedAnalytics():
     def __init__(self, db_url):
         self.db = DB(db_url)
-        self.get_messages()
-        print("Loaded " + str(len(self.messages)) + " messages")
         self.get_list_all_users()
         print("--> from " + str(len(self.user_list)) + " users")
         self.get_list_all_topics()
@@ -20,17 +18,29 @@ class GeneratedAnalytics():
         self.get_reaction_per_message()
         self.get_reaction_sent_per_user()
         self.get_reaction_type_popularity()
+        self.get_edits_per_user()
+        self.get_edits_per_topic()
+        self.get_deletes_per_user()
+        self.get_deletes_per_topic()
+        self.get_who_edits_most_per_capita()
         print("Finished initializing analytics object.")
 
-    def get_messages(self):
-        text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
-        self.messages = {}
-        for message in text_messages:
-            self.messages[message.id] = {}
-            self.messages[message.id]["team"] = message.team
-            self.messages[message.id]["from_user"] = message.from_user
-            self.messages[message.id]["topic"] = message.topic
-            self.messages[message.id]["txt_body"] = message.txt_body
+        
+    def get_message(self, message_id):
+        return self.db.session.query(Messages).get(message_id)
+
+    def get_num_messages_from_user(self, username):
+        return_object = {}
+        return_object["text"] = self.db.session.query(Messages).\
+            filter(Messages.from_user == username).\
+            filter(Messages.msg_type == "text").count()
+        return_object["edit"] = self.db.session.query(Messages).\
+            filter(Messages.from_user == username).\
+            filter(Messages.msg_type == "edit").count()
+        return_object["delete"] = self.db.session.query(Messages).\
+            filter(Messages.from_user == username).\
+            filter(Messages.msg_type == "delete").count()
+        return return_object
             
     def get_list_all_users(self):
         individual_users = self.db.session.query(distinct(Messages.from_user))
@@ -50,7 +60,9 @@ class GeneratedAnalytics():
         characters_per_message = {}
         for user in self.user_list:
             characters_per_message[user] = 0
-            user_messages = self.db.session.query(Messages).filter(Messages.txt_body != None).filter_by(from_user=user)
+            user_messages = self.db.session.query(Messages).\
+                filter(Messages.txt_body != None).\
+                filter_by(from_user=user)
             for message in user_messages:
                 characters_per_message[user] += len(message.txt_body)
         list_of_users = sorted(characters_per_message, key = characters_per_message.get, reverse=True)
@@ -103,7 +115,9 @@ class GeneratedAnalytics():
     def get_number_users_per_topic(self):
         messages_per_topic = {}
         for topic in self.topic_list:
-            topic_messages = self.db.session.query(distinct(Messages.from_user)).filter(Messages.txt_body != None).filter_by(topic=topic)
+            topic_messages = self.db.session.query(distinct(Messages.from_user)).\
+                filter(Messages.txt_body != None).\
+                filter_by(topic=topic)
             messages_per_topic[topic] = topic_messages.count()
         list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
         self.number_users_per_topic = {"users_list": [], "topics_list": []}
@@ -130,7 +144,8 @@ class GeneratedAnalytics():
         users = self.db.session.query(distinct(Messages.from_user)).filter(Messages.msg_type == "reaction")
         user_to_reaction = {}
         for user in users:
-            user_to_reaction[user[0]] = self.db.session.query(Messages).filter(Messages.msg_type == "reaction").filter(Messages.from_user == user[0]).count()
+            user_to_reaction[user[0]] = self.db.session.query(Messages).filter(Messages.msg_type == "reaction").\
+                filter(Messages.from_user == user[0]).count()
         self.reaction_sent_per_user = {
                                      "ordered_user":sorted(user_to_reaction, key = user_to_reaction.get, reverse=True), 
                                      "user_to_reaction" : user_to_reaction
@@ -148,8 +163,9 @@ class GeneratedAnalytics():
 
     def get_reaction_poplarity_topic(self, topic):
         # Get all reactions in each topic
-        reaction_popularity = {"reactions":{}, "list":{}}
-        reaction_messages = self.db.session.query(Messages.reaction_body).filter(Messages.topic == topic).filter(Messages.msg_type == "reaction")
+        reaction_popularity = {"reactions":{}, "list":[]}
+        reaction_messages = self.db.session.query(Messages.reaction_body).filter(Messages.topic == topic).\
+            filter(Messages.msg_type == "reaction")
         for reaction in reaction_messages:
             if reaction[0] not in reaction_popularity["reactions"]:
                 reaction_popularity["reactions"][reaction[0]] = 1
@@ -176,7 +192,7 @@ class GeneratedAnalytics():
         for user in self.user_list:
             mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
             self.reactions_per_user["users_reactions"][user] = mah_messages.count()
-        self.reactions_per_user["users_orderssion.query(User).get(1)ed"] = sorted(self.reactions_per_user["users_reactions"], key = self.reactions_per_user["users_reactions"].get, reverse=True)
+        self.reactions_per_user["users_ordered"] = sorted(self.reactions_per_user["users_reactions"], key = self.reactions_per_user["users_reactions"].get, reverse=True)
         return self.reactions_per_user
 
     def get_user_recieved_most_reactions(self):
@@ -192,6 +208,66 @@ class GeneratedAnalytics():
         self.recieved_most_reactions["users_orderd"] = sorted(self.recieved_most_reactions["users_reactions"], key = self.recieved_most_reactions["users_reactions"].get, reverse=True)
         return self.recieved_most_reactions
 
+                               
+    def get_edits_per_user(self):
+        individual_users = self.db.session.query(distinct(Messages.from_user)).filter(Messages.msg_type == "edit")
+        self.edits_per_user = {"users":{}, "ordered_users":[], "ordered_num_edits":[]}
+        for user in individual_users:
+            tmp_query = self.db.session.query(Messages).filter(Messages.msg_type == "edit").filter(Messages.from_user == user[0])
+            self.edits_per_user["users"][user[0]] = tmp_query.count()
+        self.edits_per_user["ordered_users"] = sorted(self.edits_per_user["users"], key = self.edits_per_user["users"].get, reverse=True)
+        for item in self.edits_per_user["ordered_users"]:
+            self.edits_per_user["ordered_num_edits"].append(self.edits_per_user["users"][item])
+        return self.edits_per_user
+    
+    def get_edits_per_topic(self):
+        individual_topics = self.db.session.query(distinct(Messages.topic)).filter(Messages.msg_type == "edit")
+        self.edits_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_edits":[]}
+        for topic in individual_topics:
+            tmp_query = self.db.session.query(Messages).filter(Messages.msg_type == "edit").filter(Messages.topic == topic[0])
+            self.edits_per_topic["topics"][topic[0]] = tmp_query.count()
+        self.edits_per_topic["ordered_topics"] = sorted(self.edits_per_topic["topics"], key = self.edits_per_topic["topics"].get, reverse=True)
+        for item in self.edits_per_topic["ordered_topics"]:
+            self.edits_per_topic["ordered_num_edits"].append(self.edits_per_topic["topics"][item])
+        return self.edits_per_topic
+
+    def get_deletes_per_user(self):
+        individual_users = self.db.session.query(distinct(Messages.from_user)).filter(Messages.msg_type == "delete")
+        self.deletes_per_user = {"users":{}, "ordered_users":[], "ordered_num_deletes":[]}
+        for user in individual_users:
+            tmp_query = self.db.session.query(Messages).filter(Messages.msg_type == "delete").filter(Messages.from_user == user[0])
+            self.deletes_per_user["users"][user[0]] = tmp_query.count()
+        self.deletes_per_user["ordered_users"] = sorted(self.deletes_per_user["users"], key = self.deletes_per_user["users"].get, reverse=True)
+        for item in self.deletes_per_user["ordered_users"]:
+            self.deletes_per_user["ordered_num_deletes"].append(self.deletes_per_user["users"][item])
+        return self.deletes_per_user
+
+
+    def get_deletes_per_topic(self):
+        individual_topics = self.db.session.query(distinct(Messages.topic)).filter(Messages.msg_type == "delete")
+        self.deletes_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_deletes":[]}
+        for topic in individual_topics:
+            tmp_query = self.db.session.query(Messages).filter(Messages.msg_type == "delete").filter(Messages.topic == topic[0])
+            self.deletes_per_topic["topics"][topic[0]] = tmp_query.count()
+        self.deletes_per_topic["ordered_topics"] = sorted(self.deletes_per_topic["topics"], key = self.deletes_per_topic["topics"].get, reverse=True)
+        for item in self.deletes_per_topic["ordered_topics"]:
+            self.deletes_per_topic["ordered_num_deletes"].append(self.deletes_per_topic["topics"][item])
+        return self.deletes_per_topic
+    
+
+    def get_who_edits_most_per_capita(self):
+        self.who_edits_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
+        for user in self.user_list:
+            mah_metadata = self.get_num_messages_from_user(user)
+            if mah_metadata['edit'] != 0:     
+                self.who_edits_most_per_capita["users"][user] = mah_metadata['edit'] / mah_metadata['text'] * 100 
+            else:
+                self.who_edits_most_per_capita["users"][user] = 0
+        self.who_edits_most_per_capita["ordered_users"] = sorted(self.who_edits_most_per_capita["users"], key = self.who_edits_most_per_capita["users"].get, reverse=True)
+        for user in self.who_edits_most_per_capita["ordered_users"]:
+            self.who_edits_most_per_capita["ordered_edit_per_capita"].append(self.who_edits_most_per_capita["users"][user])
+        return self.who_edits_most_per_capita
+    
     def get_reaction_type_popularity_per_user(self, user):
         user_used_reactions = {"users_reactions":{}, "reactions_ordered":[]}
         mah_reactions = self.db.session.query(Messages).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
