@@ -2,6 +2,9 @@ from database import DB, Messages
 from sqlalchemy import func
 import pandas as pd
 from sqlalchemy import distinct
+from urlextract import URLExtract
+from tld import get_fld
+import json
 
 class GeneratedAnalytics():
     def __init__(self, db_url):
@@ -23,6 +26,7 @@ class GeneratedAnalytics():
         self.get_deletes_per_user()
         self.get_deletes_per_topic()
         self.get_who_edits_most_per_capita()
+        self.get_top_domains()
         print("Finished initializing analytics object.")
 
         
@@ -268,6 +272,31 @@ class GeneratedAnalytics():
             self.who_edits_most_per_capita["ordered_edit_per_capita"].append(self.who_edits_most_per_capita["users"][user])
         return self.who_edits_most_per_capita
     
+    def get_top_domains(self):
+        mah_urls = []
+        for url in self.db.session.query(Messages).filter(Messages.urls != None):
+            for actual_url in json.loads(url.urls): 
+                mah_urls.append(actual_url)
+        self.top_domains = {"URLs":{}}
+        for url in mah_urls:
+            try:
+                tmp_url =  get_fld(url)
+                if tmp_url not in self.top_domains["URLs"]:
+                    self.top_domains["URLs"][tmp_url] = 1
+                else:
+                    self.top_domains["URLs"][tmp_url] += 1
+            except:
+                if url not in self.top_domains["URLs"]:
+                    self.top_domains["URLs"][url] = 0
+                else:
+                    self.top_domains["URLs"][url] += 1
+                self.top_domains["URLs"][url] += 1
+        self.top_domains["top_domains_sorted"] = sorted(self.top_domains["URLs"], key = self.top_domains["URLs"].get, reverse=True)
+        self.top_domains["num_times_repeated"] = []
+        for url in self.top_domains["top_domains_sorted"]:
+            self.top_domains["num_times_repeated"].append(self.top_domains["URLs"][url])
+    
+    
     def get_reaction_type_popularity_per_user(self, user):
         user_used_reactions = {"users_reactions":{}, "reactions_ordered":[]}
         mah_reactions = self.db.session.query(Messages).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
@@ -279,6 +308,9 @@ class GeneratedAnalytics():
         user_used_reactions["reactions_ordered"] = sorted(user_used_reactions["users_reactions"], key = user_used_reactions["users_reactions"].get, reverse=True)
         return user_used_reactions
 
+    def most_popular_domains(self):
+        pass
+    
     def get_message_data_frames(self, offset_time=0):
         # Return Pandas data frame table
         text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")

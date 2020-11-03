@@ -8,6 +8,7 @@
   * Packages used include sqlalchemy, matplotlib, and a jupyter notebook
 * Additional pip packages
   * URLExtract
+  * tld
 * [Keybase](https://keybase.io/download)
 
 ### Run the export tool
@@ -50,6 +51,7 @@ Your browser should open with a listing of the files associated with this projec
 * GeneratedAnalytics.deletes_per_user = {"users":{}, "ordered_users":[], "ordered_num_deletes":[]}
 * GeneratedAnalytics.deletes_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_deletes":[]}
 * GeneratedAnalytics.who_edits_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
+* GeneratedAnalytics.top_domains = {"URLs":{}, "top_domains_sorted":[], "num_times_repeated":[]}
 ## Methods
 
 * GeneratedAnalyitcs.get_message(MESSAGE_ID_NUM)
