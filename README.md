@@ -15,7 +15,7 @@
 
 ``` bash
 pip3 install URLExtract
-python3 create_export.py
+python3 create_export_example.py
 ```
 If you want to change the keybase team, export json file, or sqlite json file you can do so in the last two lines of the create_export.py file
 

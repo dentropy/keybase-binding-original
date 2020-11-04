@@ -253,6 +253,17 @@ class ExportKeybase():
         self.extractor.find_urls(response_string)
         return self.extractor.find_urls(response_string)
 
+    def export_text_msgs_to_csv(self, sql_connection_string, output_file):
+        db = DB(sql_connection_string)
+        mah_messages = db.session.query(Messages).filter_by(msg_type = "text")
+        msg_list = []
+        for message in mah_messages:
+            msg_list.append([str(message.txt_body)])
+        import csv
+        with open(output_file, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(msg_list)
+
     def export_team_user_metadata(self, team_name, json_file):
         member_list = self.get_team_memberships(team_name)
         members = {}
@@ -275,11 +286,3 @@ class ExportKeybase():
         with open(json_file, 'w') as fp:
             json.dump(members, fp)
         return members
-    
-print("Creating Keybase database export object...")
-ex_key = ExportKeybase()
-print("Exporting JSON file...")
-ex_key.generate_json_export("complexweekend.oct2020", "complexityweekend.json")
-print("Converting from JSON to SQLite...")
-ex_key.convert_json_to_sql("./complexityweekend.json", "sqlite:///complexityweekend.sqlite")
-print("All exports complete.")
