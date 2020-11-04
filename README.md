@@ -30,9 +30,31 @@ jupyter notebook
 Your browser should open with a listing of the files associated with this project. Open generate_analyitics.py and have fun.
 
 
-## GeneratedAnalyitcs Object
+## ExportKeybase Class
 
-## DATA
+* ExportKeybase.get_teams()
+  * Returns string list of teams current loggedin keybase user belongs to
+* ExportKeybase.get_team_memberships(team_name)
+  * Returns string list of usernames on that team
+* ExportKeybase.get_user_metadata(username)
+  * Get string of URLs where user has verified their keybase identity plus all teams they are on
+* ExportKeybase.export_team_user_metadata()
+  * Write a json file of all users, where they are verified and what teams they are on
+  * **Should probably just return an object rather than writing to disk**
+* ExportKeybase.get_team_channels(keybase_team_name)
+  * Returns list of strings for each text channel on a team
+* ExportKeybase.get_team_chat_channel(keybase_team_name, keybase_topic_name)
+  * Returns object of all messages within a keybase team topic
+* ExportKeybase.generate_json_export(keybase_team, output_file)
+  * Creates a json file named output_file which contains all chat messages from an antire team
+  * **Note required for all other exports and conversions**
+* ExportKeybase.convert_json_to_sql(json_file, sql_connection_string)
+* ExportKeybase.export_text_msgs_to_csv(sql_connection_string, output_file)
+  * **Must has already exported from JSON to SQL**
+
+## GeneratedAnalyitcs Class
+
+### DATA
 
 * GeneratedAnalyitcs.user_list = []
 * GeneratedAnalyitcs.topic_list = []
@@ -56,7 +78,7 @@ Your browser should open with a listing of the files associated with this projec
 * GeneratedAnalytics.topic_deletes_per_capita = {"topics":{}, "ordered_topics":[], "ordered_edit_per_capita" : []}
 * GeneratedAnalytics.top_domains = {"URLs":{}, "top_domains_sorted":[], "num_times_repeated":[]}
 
-## Methods
+### Methods
 
 * GeneratedAnalyitcs.get_message(MESSAGE_ID_NUM)
 * GeneratedAnalyitcs.get_num_messages_from_user("USERS USERNAME") = {"edit": INT, "text": INT, "delete": INT}
@@ -69,6 +91,7 @@ Your browser should open with a listing of the files associated with this projec
 
 ## Analitics
 
+* Find the most URL's posted per user
 * Finish the last couple methods in generate_analytics and then output their data in one or both of the jupyter notebooks
 * Script to Export all attachments, must use keybase daemon
 * Hook up the database to graphql
@@ -82,38 +105,25 @@ Your browser should open with a listing of the files associated with this projec
 
 ## Problems moving forward
 
-* Total number of characters per
-  * User
-  * Channel
-* Total number of messages per
-  * user
-  * Channel
-* Total number of words per
-  * User
-  * Channel
-  * Message per Topic
-* Total number of users per
-  * Topic
-* Most Reactions per
-  * Message
-  * User
-* Total number of people interacting in each channel
------ Above is completed
+* How does this code scale to analyze multiple teams
+* Real time export / Sync up without full export
+* Coming up with Bot ideas for all this data
+* Analysis functions to write
 * reaction_poplarity_per_topic
-* user_sent_most_reactions
-* user_recieved_most_reactions
-* reaction_type_popularity_per_user
-* Graph of activity over time
-  * Total
-  * Channel
-  * User
-  * User in Channel
-* Which users are most replied too
-* Average message length per
-  * Channel
-  * User
+  * user_recieved_most_reactions
+  * reaction_type_popularity_per_user
+  * Graph of activity over time
+    * Total
+    * Channel
+    * User
+    * User in Channel
+    * Day of week
+  * Average message length per
+    * Channel
+    * User
 * Topic Modeling on channels and across channels
 * Sentiment Analysis
+* Machine Learning
 
 ## Tools moving forward
 
