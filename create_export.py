@@ -5,6 +5,9 @@ from database import DB, Messages
 from urlextract import URLExtract
 
 class ExportKeybase():
+    def __init__(self):
+        self.extractor = URLExtract()
+    
     def get_team_channels(self,keybase_team_name):
         get_teams_channels = Template('''
         {
@@ -61,7 +64,6 @@ class ExportKeybase():
 
 
     def get_root_messages(self, mah_messages, db):
-        self.extractor = URLExtract()
         for topic in mah_messages["topic_name"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
                 if message["msg"]["content"]["type"] == "headline":
@@ -219,12 +221,61 @@ class ExportKeybase():
   
     def get_teams(self):
         keybase_teams = subprocess.run(["keybase", "team", "list-memberships"], capture_output=True)
-        team_string = str(dentropydaemon_teams.stdout).split("\\n")
+        team_string = str(keybase_teams.stdout).split("\\n")
         teams = []
         for i in team_string[1:-1]:
             teams.append(i.split()[0])
         return teams
 
+    def get_team_memberships(self, team_name):
+        json_string = '''
+        {
+            "method": "list-team-memberships",
+            "params": {
+                "options": {
+                    "team": "%s"
+                }
+            }
+        }
+        ''' % (team_name)
+        response = subprocess.check_output(["keybase", "team", "api", "-m", json_string])
+        user_data = json.loads(response.decode('utf-8'))
+        usernames = []
+        for key in user_data["result"]["members"].keys():
+            if user_data["result"]["members"][key] != None:
+                for mah_val in range(len(user_data["result"]["members"][key])):
+                    usernames.append(user_data["result"]["members"][key][mah_val]["username"])
+        return usernames
+    
+    def get_user_metadata(self, username):
+        response = subprocess.run(["keybase", "id", username],  capture_output=True).stderr
+        response_string = response.decode("utf-8")
+        self.extractor.find_urls(response_string)
+        return self.extractor.find_urls(response_string)
+
+    def export_team_user_metadata(self, team_name, json_file):
+        member_list = self.get_team_memberships(team_name)
+        members = {}
+        for member in member_list:
+            members[member] = {}
+            members[member]["verification"] = self.get_user_metadata(member)
+            json_string = '''
+            {
+                "method": "list-user-memberships", 
+                "params": {
+                    "options": {"username": "%s"}
+                }
+            }
+            ''' % (member)
+            response = json.loads(subprocess.check_output(["keybase", "team", "api", "-m", json_string]).decode('utf-8'))
+            team_list = []
+            for team in response["result"]["teams"]:
+                team_list.append(team["fq_name"])
+            members[member]["teams"] = team_list
+        with open(json_file, 'w') as fp:
+            json.dump(members, fp)
+        return members
+    
 print("Creating Keybase database export object...")
 ex_key = ExportKeybase()
 print("Exporting JSON file...")

@@ -26,9 +26,12 @@ class GeneratedAnalytics():
         self.get_deletes_per_user()
         self.get_deletes_per_topic()
         self.get_who_edits_most_per_capita()
+        self.get_who_deletes_most_per_capita()
+        self.get_topic_deletes_per_capita()
         self.get_top_domains()
+        
         print("Finished initializing analytics object.")
-
+        self.get_topic_edits_per_capita()
         
     def get_message(self, message_id):
         return self.db.session.query(Messages).get(message_id)
@@ -43,6 +46,19 @@ class GeneratedAnalytics():
             filter(Messages.msg_type == "edit").count()
         return_object["delete"] = self.db.session.query(Messages).\
             filter(Messages.from_user == username).\
+            filter(Messages.msg_type == "delete").count()
+        return return_object
+    
+    def get_num_messages_from_topic(self, topic):
+        return_object = {}
+        return_object["text"] = self.db.session.query(Messages).\
+            filter(Messages.topic == topic).\
+            filter(Messages.msg_type == "text").count()
+        return_object["edit"] = self.db.session.query(Messages).\
+            filter(Messages.topic == topic).\
+            filter(Messages.msg_type == "edit").count()
+        return_object["delete"] = self.db.session.query(Messages).\
+            filter(Messages.topic == topic).\
             filter(Messages.msg_type == "delete").count()
         return return_object
             
@@ -263,7 +279,7 @@ class GeneratedAnalytics():
         self.who_edits_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
         for user in self.user_list:
             mah_metadata = self.get_num_messages_from_user(user)
-            if mah_metadata['edit'] != 0:     
+            if mah_metadata['edit'] != 0 and mah_metadata['text'] != 0:     
                 self.who_edits_most_per_capita["users"][user] = mah_metadata['edit'] / mah_metadata['text'] * 100 
             else:
                 self.who_edits_most_per_capita["users"][user] = 0
@@ -271,7 +287,46 @@ class GeneratedAnalytics():
         for user in self.who_edits_most_per_capita["ordered_users"]:
             self.who_edits_most_per_capita["ordered_edit_per_capita"].append(self.who_edits_most_per_capita["users"][user])
         return self.who_edits_most_per_capita
+
+    def get_who_deletes_most_per_capita(self):
+        self.who_deletes_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
+        for user in self.user_list:
+            mah_metadata = self.get_num_messages_from_user(user)
+            if mah_metadata['delete'] != 0 and mah_metadata['text'] != 0:     
+                self.who_deletes_most_per_capita["users"][user] = mah_metadata['delete'] / mah_metadata['text'] * 100 
+            else:
+                self.who_deletes_most_per_capita["users"][user] = 0
+        self.who_deletes_most_per_capita["ordered_users"] = sorted(self.who_deletes_most_per_capita["users"], key = self.who_deletes_most_per_capita["users"].get, reverse=True)
+        for user in self.who_deletes_most_per_capita["ordered_users"]:
+            self.who_deletes_most_per_capita["ordered_edit_per_capita"].append(self.who_deletes_most_per_capita["users"][user])
+        return self.who_deletes_most_per_capita
+
+    def get_topic_edits_per_capita(self):
+        self.topic_edits_per_capita = {"topics":{}, "ordered_topics":[], "ordered_edit_per_capita" : []}
+        for user in self.topic_list:
+            mah_metadata = self.get_num_messages_from_topic(user)
+            if mah_metadata['edit'] != 0:     
+                self.topic_edits_per_capita["topics"][user] = mah_metadata['edit'] / mah_metadata['text'] * 100 
+            else:
+                self.topic_edits_per_capita["topics"][user] = 0
+        self.topic_edits_per_capita["ordered_topics"] = sorted(self.topic_edits_per_capita["topics"], key = self.topic_edits_per_capita["topics"].get, reverse=True)
+        for user in self.topic_edits_per_capita["ordered_topics"]:
+            self.topic_edits_per_capita["ordered_edit_per_capita"].append(self.topic_edits_per_capita["topics"][user])
+        return self.topic_edits_per_capita
     
+    def get_topic_deletes_per_capita(self):
+        self.topic_deletes_per_capita = {"topics":{}, "ordered_topics":[], "ordered_edit_per_capita" : []}
+        for user in self.topic_list:
+            mah_metadata = self.get_num_messages_from_topic(user)
+            if mah_metadata['edit'] != 0:     
+                self.topic_deletes_per_capita["topics"][user] = mah_metadata['edit'] / mah_metadata['text'] * 100 
+            else:
+                self.topic_deletes_per_capita["topics"][user] = 0
+        self.topic_deletes_per_capita["ordered_topics"] = sorted(self.topic_deletes_per_capita["topics"], key = self.topic_deletes_per_capita["topics"].get, reverse=True)
+        for user in self.topic_deletes_per_capita["ordered_topics"]:
+            self.topic_deletes_per_capita["ordered_edit_per_capita"].append(self.topic_deletes_per_capita["topics"][user])
+        return self.topic_deletes_per_capita
+
     def get_top_domains(self):
         mah_urls = []
         for url in self.db.session.query(Messages).filter(Messages.urls != None):
@@ -308,7 +363,7 @@ class GeneratedAnalytics():
         user_used_reactions["reactions_ordered"] = sorted(user_used_reactions["users_reactions"], key = user_used_reactions["users_reactions"].get, reverse=True)
         return user_used_reactions
 
-    def most_popular_domains(self):
+    def get_user_ids(self, user):
         pass
     
     def get_message_data_frames(self, offset_time=0):
