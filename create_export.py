@@ -216,7 +216,15 @@ class ExportKeybase():
         self.get_root_messages(mah_messages,db)
         self.get_reaction_messages(mah_messages, db)
         print("Conversion from json to sql complete")
-        
+  
+    def get_teams(self):
+        keybase_teams = subprocess.run(["keybase", "team", "list-memberships"], capture_output=True)
+        team_string = str(dentropydaemon_teams.stdout).split("\\n")
+        teams = []
+        for i in team_string[1:-1]:
+            teams.append(i.split()[0])
+        return teams
+
 print("Creating Keybase database export object...")
 ex_key = ExportKeybase()
 print("Exporting JSON file...")

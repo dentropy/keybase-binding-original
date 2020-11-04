@@ -51,11 +51,16 @@ Your browser should open with a listing of the files associated with this projec
 * GeneratedAnalytics.deletes_per_user = {"users":{}, "ordered_users":[], "ordered_num_deletes":[]}
 * GeneratedAnalytics.deletes_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_deletes":[]}
 * GeneratedAnalytics.who_edits_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
+* GeneratedAnalytics.who_deletes_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
+* GeneratedAnalytics.topic_edits_per_capita = {"topics":{}, "ordered_topics":[], "ordered_edit_per_capita" : []}
+* GeneratedAnalytics.topic_deletes_per_capita = {"topics":{}, "ordered_topics":[], "ordered_edit_per_capita" : []}
 * GeneratedAnalytics.top_domains = {"URLs":{}, "top_domains_sorted":[], "num_times_repeated":[]}
+
 ## Methods
 
 * GeneratedAnalyitcs.get_message(MESSAGE_ID_NUM)
 * GeneratedAnalyitcs.get_num_messages_from_user("USERS USERNAME") = {"edit": INT, "text": INT, "delete": INT}
+* GeneratedAnalyitcs.get_num_messages_from_topic("TOPIC NAME") = {"edit": INT, "text": INT, "delete": INT}
 * GeneratedAnalyitcs.get_reaction_poplarity_topic("TOPIC NAME") = {"reactions":{}, "list":[]}
 * GeneratedAnalyitcs.get_all_user_message_id("USERS USERNAME") = {"users_reactions":{}, "users_ordered":[]}
 * GeneratedAnalyitcs.get_reaction_type_popularity_per_user("USERS USERNAME") = {"users_reactions":{}, "reactions_ordered":[]}
