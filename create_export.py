@@ -256,7 +256,11 @@ class ExportKeybase():
     def export_text_msgs_to_csv(self, sql_connection_string, output_file):
         db = DB(sql_connection_string)
         mah_messages = db.session.query(Messages).filter_by(msg_type = "text")
+<<<<<<< HEAD
         msg_list = [["text_messages"]]
+=======
+        msg_list = []
+>>>>>>> 5eccc38b36eff3949a416df1ac32e5532a4d4abc
         for message in mah_messages:
             msg_list.append([str(message.txt_body)])
         import csv
