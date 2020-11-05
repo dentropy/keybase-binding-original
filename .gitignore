@@ -151,3 +151,9 @@ numpy/
 
 pandas/
 >>>>>>> spreadsheet
+
+export/
+
+.idea/
+
+test.py
