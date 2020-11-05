@@ -1,5 +1,11 @@
 # Do not store data on this repository
 *.json
+<<<<<<< HEAD
+<<<<<<< HEAD
+numpy/
+
+pandas/
+=======
 *.sqlite
 *.csv
 MDLib/
@@ -152,3 +158,15 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+>>>>>>> 5806b8144e75cebb59a95c0a6a207bc6f773203d
+=======
+numpy/
+
+pandas/
+>>>>>>> spreadsheet
+
+export/
+
+.idea/
+
+test.py
