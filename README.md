@@ -52,6 +52,49 @@ Your browser should open with a listing of the files associated with this projec
 * ExportKeybase.export_text_msgs_to_csv(sql_connection_string, output_file)
   * **Must has already exported from JSON to SQL**
 
+## SQL Database Table Explanations
+
+Each message type dumps data into seperate columns here we will go through each message type.
+
+* Every message has the following columns filled in
+  * id, a unique ID for every message in the database
+  * team, team from where the message was posted
+  * topic, text channel from the team
+  * msg_id, each message posted in a channel are given an incremental id
+  * msg_type, self explanatory
+  * from_user, user who posted the message
+  * sent_time, [unix time stamp](https://en.wikipedia.org/wiki/Unix_time) of the message
+* The other columns in the database are contain different data relative to msg_type. Below we go through each message type and the columns they use.
+  * attachment
+    * text_body, title of the file / image
+    * json_data, a JSON dump of the object keybase provides
+    **TODO, get attachment, hash, and caption in seperate columns**
+  * delete
+    * msg_reference, when one looks at the msg_id of a specific topic they will notice it may not increment correctly that is because these messages were deleted and this message gives context
+  * edit
+    * text_body, just a string of what the user posted
+    * msg_reference, the id not msg_id but database id of the origional message
+    **TODO, get word_count, num_urls, and urls**
+  * headline
+    * txt_body, just a string of the headline that was posted associated with the channel
+  * join
+    * no additional columns
+  * metadata
+    * txt_body, a JSON dump of the object keybase provides. Only has one key conversationTitle whose value matches the topic
+  * reaction
+    * reaction_body
+    * msg_reference
+  * system
+    * json_data, a JSON dump of the object keybase provides.
+  * text
+    * txt_body
+    * world_count
+    * num_urls
+    * urls
+    * user_mentions
+  * unfurl
+    * json_data, a JSON dump of the object keybase provides
+
 ## GeneratedAnalyitcs Class
 
 ### DATA

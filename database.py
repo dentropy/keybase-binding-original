@@ -16,12 +16,15 @@ class Messages(Base):
     from_user = Column(String(128))
     sent_time = Column(Integer)
     txt_body = Column(String(4096))
+    json_data = Column(String(4096))
     word_count = Column(Integer)
     num_urls = Column(Integer)
     urls = Column(String(4096))
     reaction_body = Column(String(1024))
     msg_reference = Column(Integer)
     userMentions = Column(String(1024))
+    attachment_file_path = Column(String(1024))
+    attachment_hash = Column(String(32))
 
     def __repr__(self):
         return "<Message(id='%d', team='%s', topic='%s', type='%s', from='%s')>" % (self.id, self.team, self.topic, self.msg_type, self.from_user)
