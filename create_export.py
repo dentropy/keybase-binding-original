@@ -294,3 +294,17 @@ class ExportKeybase():
         with open(output_file, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerows(msg_list)
+
+    def message_table_to_csv(self, table_object, sql_connection_string, csv_file_name):
+        db = DB(sql_connection_string)
+        mah_columns = []
+        for column in table_object.__table__.c:
+            mah_columns.append(str(column).split(".")[1])
+        import csv
+        with open(csv_file_name, 'w') as f:
+            out = csv.writer(f)
+            for row in db.session.query(table_object).all():
+                full_row = []
+                for column_name in mah_columns:
+                    full_row.append(row.__dict__[column_name])
+                out.writerow(full_row)
