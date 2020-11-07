@@ -8,6 +8,7 @@ import json
 
 class GeneratedAnalytics():
     def __init__(self, db_url):
+        """GeneratedAnalytics class constructor."""
         self.db = DB(db_url)
         self.get_list_all_users()
         print("--> from " + str(len(self.user_list)) + " users")
@@ -34,9 +35,11 @@ class GeneratedAnalytics():
         self.get_topic_edits_per_capita()
         
     def get_message(self, message_id):
+        """Returns a single row from Message object (SQL table) by ID."""
         return self.db.session.query(Messages).get(message_id)
 
     def get_num_messages_from_user(self, username):
+        """Return object with number of times a text was edited or deleted for a given user."""
         return_object = {}
         return_object["text"] = self.db.session.query(Messages).\
             filter(Messages.from_user == username).\
@@ -50,6 +53,7 @@ class GeneratedAnalytics():
         return return_object
     
     def get_num_messages_from_topic(self, topic):
+        """Return object with number of times a text was edited or deleted for a given topic."""
         return_object = {}
         return_object["text"] = self.db.session.query(Messages).\
             filter(Messages.topic == topic).\
@@ -63,6 +67,7 @@ class GeneratedAnalytics():
         return return_object
             
     def get_list_all_users(self):
+        """Update and return list of all users."""
         individual_users = self.db.session.query(distinct(Messages.from_user))
         self.user_list = []
         for user in individual_users:
@@ -70,6 +75,7 @@ class GeneratedAnalytics():
         return self.user_list
 
     def get_list_all_topics(self):
+        """Update and return list of all topics."""
         individual_topic = self.db.session.query(distinct(Messages.topic))
         self.topic_list = []
         for topic in individual_topic:
@@ -77,6 +83,7 @@ class GeneratedAnalytics():
         return self.topic_list
 
     def get_characters_per_user(self):
+        """Update and return total number of characters from messages for each user."""
         characters_per_message = {}
         for user in self.user_list:
             characters_per_message[user] = 0
@@ -93,6 +100,7 @@ class GeneratedAnalytics():
         return self.characters_per_user
 
     def get_characters_per_topic(self):
+        """Update and return total number of characters from messages posted in each topic channel."""
         messages_per_topic = {}
         for topic in self.topic_list:
             messages_per_topic[topic] = 0
@@ -107,6 +115,7 @@ class GeneratedAnalytics():
         return self.characters_per_topic
 
     def get_messages_per_user(self):
+        """Update and return total number of messages for each user."""
         messages_per_user = {}
         for user in self.user_list:
             messages_per_user[user] = 0
@@ -120,6 +129,7 @@ class GeneratedAnalytics():
         return self.messages_per_user
 
     def get_messages_per_topic(self):
+        """Update and return total number of messages posted in each topic."""
         messages_per_topic = {}
         for topic in self.topic_list:
             messages_per_topic[topic] = 0
@@ -133,6 +143,7 @@ class GeneratedAnalytics():
         return self.messages_per_topic
 
     def get_number_users_per_topic(self):
+        """Update and return the number of users for each topic."""
         messages_per_topic = {}
         for topic in self.topic_list:
             topic_messages = self.db.session.query(distinct(Messages.from_user)).\
@@ -148,6 +159,7 @@ class GeneratedAnalytics():
 
 
     def get_reaction_per_message(self):
+        """Update the reactions to each message."""
         messages = {}
         topic_messages = self.db.session.query(Messages).filter(Messages.msg_type == "reaction")
         for message in topic_messages:
@@ -156,11 +168,12 @@ class GeneratedAnalytics():
             else:
                 messages[message.msg_reference] += 1
         self.reaction_per_message = {
-                                     "ordered_mesage_id":sorted(messages, key = messages.get, reverse=True), 
+                                     "ordered_message_id":sorted(messages, key = messages.get, reverse=True), 
                                      "num_reaction" : messages
                                     }
         
     def get_reaction_sent_per_user(self):
+        """Update the reactions sent by each user."""
         users = self.db.session.query(distinct(Messages.from_user)).filter(Messages.msg_type == "reaction")
         user_to_reaction = {}
         for user in users:
@@ -172,6 +185,7 @@ class GeneratedAnalytics():
                                     }
 
     def get_reaction_type_popularity(self):
+        """Update and return the popularity of all the reaction types."""
         reaction_messages = self.db.session.query(Messages).filter(Messages.msg_type == "reaction")
         self.reaction_popularity_map = {"reactions":{}}
         for reaction in reaction_messages:
@@ -182,7 +196,7 @@ class GeneratedAnalytics():
         self.reaction_popularity_map["sorted"] = sorted(self.reaction_popularity_map["reactions"], key = self.reaction_popularity_map["reactions"].get, reverse=True), 
 
     def get_reaction_poplarity_topic(self, topic):
-        # Get all reactions in each topic
+        """Get popularity of all reactions in a specific topic."""
         reaction_popularity = {"reactions":{}, "list":[]}
         reaction_messages = self.db.session.query(Messages.reaction_body).filter(Messages.topic == topic).\
             filter(Messages.msg_type == "reaction")
@@ -195,6 +209,7 @@ class GeneratedAnalytics():
         return reaction_popularity
 
     def get_all_user_message_id(self, user):
+        """For a specific user, return all message IDs involving that user."""
         user_messages = {"text":[], "reaction":[], "attachment":[]}
         mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "text")
         for message in mah_messages:
@@ -208,6 +223,7 @@ class GeneratedAnalytics():
         return user_messages
 
     def get_user_sent_most_reactions(self):
+        """Return the sorted user by most number of reactions issued."""
         self.reactions_per_user = {"users_reactions":{}, "users_ordered":[]}
         for user in self.user_list:
             mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
@@ -216,7 +232,7 @@ class GeneratedAnalytics():
         return self.reactions_per_user
 
     def get_user_recieved_most_reactions(self):
-        # Need get_all_user_message_id
+        """Update and return the sorted listing of users by number of reactions received."""
         self.recieved_most_reactions = {"users_reactions":{}, "users_ordered":[]}
         reaction_messages = self.db.session.query(Messages).filter(Messages.msg_type == "reaction")
         for message in reaction_messages:
@@ -230,6 +246,7 @@ class GeneratedAnalytics():
 
                                
     def get_edits_per_user(self):
+        """Update and return the number of message edits by user."""
         individual_users = self.db.session.query(distinct(Messages.from_user)).filter(Messages.msg_type == "edit")
         self.edits_per_user = {"users":{}, "ordered_users":[], "ordered_num_edits":[]}
         for user in individual_users:
@@ -241,6 +258,7 @@ class GeneratedAnalytics():
         return self.edits_per_user
     
     def get_edits_per_topic(self):
+        """Update and return the raw number of edited message by topic."""
         individual_topics = self.db.session.query(distinct(Messages.topic)).filter(Messages.msg_type == "edit")
         self.edits_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_edits":[]}
         for topic in individual_topics:
@@ -252,6 +270,7 @@ class GeneratedAnalytics():
         return self.edits_per_topic
 
     def get_deletes_per_user(self):
+        """Update and return the raw number of deleted messages by user."""
         individual_users = self.db.session.query(distinct(Messages.from_user)).filter(Messages.msg_type == "delete")
         self.deletes_per_user = {"users":{}, "ordered_users":[], "ordered_num_deletes":[]}
         for user in individual_users:
@@ -264,6 +283,7 @@ class GeneratedAnalytics():
 
 
     def get_deletes_per_topic(self):
+        """Update and return the raw number of deleted messages by topic."""
         individual_topics = self.db.session.query(distinct(Messages.topic)).filter(Messages.msg_type == "delete")
         self.deletes_per_topic = {"topics":{}, "ordered_topics":[], "ordered_num_deletes":[]}
         for topic in individual_topics:
@@ -276,6 +296,7 @@ class GeneratedAnalytics():
     
 
     def get_who_edits_most_per_capita(self):
+        """Update and return the per-capita message edits by user."""
         self.who_edits_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
         for user in self.user_list:
             mah_metadata = self.get_num_messages_from_user(user)
@@ -289,6 +310,7 @@ class GeneratedAnalytics():
         return self.who_edits_most_per_capita
 
     def get_who_deletes_most_per_capita(self):
+        """Update and return the per-capita message deletions by user."""
         self.who_deletes_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
         for user in self.user_list:
             mah_metadata = self.get_num_messages_from_user(user)
@@ -302,6 +324,7 @@ class GeneratedAnalytics():
         return self.who_deletes_most_per_capita
 
     def get_topic_edits_per_capita(self):
+        """Update and return the per-capita edits by topic."""
         self.topic_edits_per_capita = {"topics":{}, "ordered_topics":[], "ordered_edit_per_capita" : []}
         for user in self.topic_list:
             mah_metadata = self.get_num_messages_from_topic(user)
@@ -315,6 +338,7 @@ class GeneratedAnalytics():
         return self.topic_edits_per_capita
     
     def get_topic_deletes_per_capita(self):
+        """Update and return the per-capita deletes by topic."""
         self.topic_deletes_per_capita = {"topics":{}, "ordered_topics":[], "ordered_edit_per_capita" : []}
         for user in self.topic_list:
             mah_metadata = self.get_num_messages_from_topic(user)
@@ -328,6 +352,7 @@ class GeneratedAnalytics():
         return self.topic_deletes_per_capita
 
     def get_top_domains(self):
+        """Update list of most-popular top-level domains linked in text chat."""
         mah_urls = []
         for url in self.db.session.query(Messages).filter(Messages.urls != None):
             for actual_url in json.loads(url.urls): 
@@ -353,6 +378,7 @@ class GeneratedAnalytics():
     
     
     def get_reaction_type_popularity_per_user(self, user):
+        """Returns/updates the popularity of a given reaction type by their username"""
         user_used_reactions = {"users_reactions":{}, "reactions_ordered":[]}
         mah_reactions = self.db.session.query(Messages).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
         for reaction in mah_reactions:
@@ -364,10 +390,11 @@ class GeneratedAnalytics():
         return user_used_reactions
 
     def get_user_ids(self, user):
+        """Get ID of a given user."""
         pass
     
     def get_message_data_frames(self, offset_time=0):
-        # Return Pandas data frame table
+        """Return Pandas data frame table."""
         text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
         message_data = {
             "user": [],

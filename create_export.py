@@ -6,9 +6,11 @@ from urlextract import URLExtract
 
 class ExportKeybase():
     def __init__(self):
+        """Initialize the ExportKeybase object."""
         self.extractor = URLExtract()
     
     def get_teams(self):
+        """Return string list of all current-user Keybase teams."""
         keybase_teams = subprocess.run(["keybase", "team", "list-memberships"], capture_output=True)
         team_string = str(keybase_teams.stdout).split("\\n")
         teams = []
@@ -17,6 +19,7 @@ class ExportKeybase():
         return teams
 
     def get_team_memberships(self, team_name):
+        """Return string list of all users for a specific team."""
         json_string = '''
         {
             "method": "list-team-memberships",
@@ -37,6 +40,7 @@ class ExportKeybase():
         return usernames
     
     def get_user_metadata(self, username):
+        """Get string of URLs for accounts that user has linked with Keybase account."""
         user_metadata = {"verification":[]}
         response = subprocess.run(["keybase", "id", username],  capture_output=True).stderr
         response_string = response.decode("utf-8")
@@ -64,6 +68,7 @@ class ExportKeybase():
         return user_metadata
 
     def export_team_user_metadata(self, team_name, json_file):
+        """Write a json file of all users and metadata for a given team."""
         member_list = self.get_team_memberships(team_name)
         members = {}
         for member in member_list:
@@ -74,6 +79,7 @@ class ExportKeybase():
         return members
 
     def get_team_channels(self,keybase_team_name):
+        """Returns list of strings for each text channel on a team."""
         get_teams_channels = Template('''
         {
             "method": "listconvsonname",
@@ -96,6 +102,7 @@ class ExportKeybase():
         return mah_channels
 
     def get_team_chat_channel(self, keybase_team_name, keybase_topic_name):
+        """Returns json object of all messages within a Keybase team topic"""
         get_teams_channels = Template('''
         {
             "method": "read",
@@ -116,6 +123,7 @@ class ExportKeybase():
         return json.loads(response.decode('utf-8'))
 
     def generate_json_export(self, keybase_team, output_file):
+        """Creates a json file with specified filename containing all team chat data."""
         complexity_weekend_teams = self.get_team_channels(keybase_team)
         mah_messages = {"topic_name":{}}
         for topic in complexity_weekend_teams:
@@ -129,6 +137,7 @@ class ExportKeybase():
 
 
     def get_root_messages(self, mah_messages, db):
+        """From message list, find text messages, add them to SQL database session, and then commit the session."""
         for topic in mah_messages["topic_name"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
                 if message["msg"]["content"]["type"] == "headline":
@@ -245,6 +254,7 @@ class ExportKeybase():
         db.session.commit()
     
     def get_reaction_messages(self, mah_messages, db):
+        """From message list, find reactions, add them to SQL database session, and then commit the session."""
         for topic in mah_messages["topic_name"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
                 if message["msg"]["content"]["type"] == "reaction":
@@ -278,6 +288,7 @@ class ExportKeybase():
         db.session.commit()
         
     def convert_json_to_sql(self, json_file, sql_connection_string):
+        """Convert json file data to SQL database structure."""
         db = DB(sql_connection_string)
         mah_messages = json.load(open(json_file, 'r'))
         self.get_root_messages(mah_messages,db)
@@ -285,6 +296,7 @@ class ExportKeybase():
         print("Conversion from json to sql complete")
 
     def export_text_msgs_to_csv(self, sql_connection_string, output_file):
+        """Export text messages from SQL database to CSV spreadsheet."""
         db = DB(sql_connection_string)
         mah_messages = db.session.query(Messages).filter_by(msg_type = "text")
         msg_list = [["text_messages"]]
@@ -296,6 +308,7 @@ class ExportKeybase():
             writer.writerows(msg_list)
 
     def message_table_to_csv(self, table_object, sql_connection_string, csv_file_name):
+        """Export table object with text message data to CSV spreadsheet."""
         db = DB(sql_connection_string)
         mah_columns = []
         for column in table_object.__table__.c:
