@@ -11,8 +11,8 @@ class ExportKeybase():
     
     def get_teams(self):
         """Return string list of all current-user Keybase teams."""
-        keybase_teams = subprocess.run(["keybase", "team", "list-memberships"], capture_output=True)
-        team_string = str(keybase_teams.stdout).split("\\n")
+        keybase_teams = subprocess.check_output(["keybase", "team", "list-memberships"])
+        team_string = str(keybase_teams).split("\\n")
         teams = []
         for i in team_string[1:-1]:
             teams.append(i.split()[0])
@@ -42,7 +42,7 @@ class ExportKeybase():
     def get_user_metadata(self, username):
         """Get string of URLs for accounts that user has linked with Keybase account."""
         user_metadata = {"verification":[]}
-        response = subprocess.run(["keybase", "id", username],  capture_output=True).stderr
+        response = subprocess.check_output(["keybase", "id", username])
         response_string = response.decode("utf-8")
         for line in response_string.split("\n"):
             print(line)
@@ -93,8 +93,10 @@ class ExportKeybase():
         }
         ''')
         dentropydaemon_channels_json = get_teams_channels.substitute(TEAM_NAME=keybase_team_name)
-        dentropydaemon_channels = subprocess.run(["keybase", "chat", "api", "-m", dentropydaemon_channels_json],  capture_output=True)
-        dentropydaemon_channels = str(dentropydaemon_channels.stdout)[2:-3]
+        dentropydaemon_channels = subprocess.check_output(["keybase", "chat", "api", "-m", dentropydaemon_channels_json])
+        print("dentropydaemon_channels")
+        print(dentropydaemon_channels)
+        dentropydaemon_channels = str(dentropydaemon_channels)[2:-3]
         mah_json = json.loads(dentropydaemon_channels)
         mah_channels = []
         for i in mah_json["result"]["conversations"]:
