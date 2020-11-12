@@ -94,8 +94,6 @@ class ExportKeybase():
         ''')
         dentropydaemon_channels_json = get_teams_channels.substitute(TEAM_NAME=keybase_team_name)
         dentropydaemon_channels = subprocess.check_output(["keybase", "chat", "api", "-m", dentropydaemon_channels_json])
-        print("dentropydaemon_channels")
-        print(dentropydaemon_channels)
         dentropydaemon_channels = str(dentropydaemon_channels)[2:-3]
         mah_json = json.loads(dentropydaemon_channels)
         mah_channels = []
