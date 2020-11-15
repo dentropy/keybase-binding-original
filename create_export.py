@@ -3,6 +3,7 @@ import subprocess
 import json
 from database import DB, Messages
 from urlextract import URLExtract
+import datetime
 
 class ExportKeybase():
     def __init__(self):
@@ -148,7 +149,7 @@ class ExportKeybase():
                         msg_type = "headline",
                         txt_body =  message["msg"]["content"]["headline"]["headline"],
                         from_user = message["msg"]["sender"]["username"],
-                        sent_time = message["msg"]["sent_at"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                         ))
                 elif message["msg"]["content"]["type"] == "join":
                     db.session.add( Messages( 
@@ -157,7 +158,7 @@ class ExportKeybase():
                         msg_id = message["msg"]["id"],
                         msg_type = "join",
                         from_user = message["msg"]["sender"]["username"],
-                        sent_time = message["msg"]["sent_at"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                         ))
                 elif message["msg"]["content"]["type"] == "metadata":
                     db.session.add( Messages( 
@@ -167,7 +168,7 @@ class ExportKeybase():
                         msg_type = "metadata",
                         from_user = message["msg"]["sender"]["username"],
                         txt_body =  json.dumps(message["msg"]["content"]["metadata"]),
-                        sent_time = message["msg"]["sent_at"]
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"])
                         ))
                 elif message["msg"]["content"]["type"] == "attachment":
                     db.session.add( Messages( 
@@ -177,7 +178,7 @@ class ExportKeybase():
                         msg_type = "attachment",
                         from_user = message["msg"]["sender"]["username"],
                         txt_body =  json.dumps(message["msg"]["content"]["attachment"]),
-                        sent_time = message["msg"]["sent_at"]
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"])
                         ))
                 elif message["msg"]["content"]["type"] == "unfurl":
                     db.session.add( Messages( 
@@ -187,7 +188,7 @@ class ExportKeybase():
                         msg_type = "unfurl",
                         from_user = message["msg"]["sender"]["username"],
                         txt_body =  json.dumps(message["msg"]["content"]["unfurl"]),
-                        sent_time = message["msg"]["sent_at"]
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"])
                         ))
                 elif message["msg"]["content"]["type"] == "system":
                     if "at_mention_usernames" in message["msg"]:
@@ -201,7 +202,7 @@ class ExportKeybase():
                         msg_type = "system",
                         from_user = message["msg"]["sender"]["username"],
                         txt_body =  json.dumps(message["msg"]["content"]["system"]),
-                        sent_time = message["msg"]["sent_at"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                         userMentions = at_mention_usernames
                         ))
                 elif message["msg"]["content"]["type"] == "leave":
@@ -211,7 +212,7 @@ class ExportKeybase():
                         msg_id = message["msg"]["id"],
                         msg_type = "leave",
                         from_user = message["msg"]["sender"]["username"],
-                        sent_time = message["msg"]["sent_at"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                         ))
                 elif message["msg"]["content"]["type"] == "delete":
                     db.session.add( Messages( 
@@ -220,7 +221,7 @@ class ExportKeybase():
                         msg_id = message["msg"]["id"],
                         msg_type = "delete",
                         from_user = message["msg"]["sender"]["username"],
-                        sent_time = message["msg"]["sent_at"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                         msg_reference = message["msg"]["content"]["delete"]["messageIDs"][0]
                         ))
                 elif message["msg"]["content"]["type"] == "text":
@@ -232,7 +233,7 @@ class ExportKeybase():
                             msg_id = message["msg"]["id"],
                             msg_type = "text",
                             from_user = message["msg"]["sender"]["username"],
-                            sent_time = message["msg"]["sent_at"],
+                            sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                             txt_body =  message["msg"]["content"]["text"]["body"],
                             word_count = len(message["msg"]["content"]["text"]["body"].split(" ")),
                             userMentions = json.dumps(message["msg"]["content"]["text"]["userMentions"])
@@ -244,7 +245,7 @@ class ExportKeybase():
                             msg_id = message["msg"]["id"],
                             msg_type = "text",
                             from_user = message["msg"]["sender"]["username"],
-                            sent_time = message["msg"]["sent_at"],
+                            sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                             txt_body =  message["msg"]["content"]["text"]["body"],
                             urls = json.dumps(urls),
                             num_urls = len(urls),
@@ -267,7 +268,7 @@ class ExportKeybase():
                             msg_id = message["msg"]["id"],
                             msg_type = "reaction",
                             from_user = message["msg"]["sender"]["username"],
-                            sent_time = message["msg"]["sent_at"],
+                            sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                             reaction_body =  message["msg"]["content"]["reaction"]["b"],
                             msg_reference = root_msg.first().id
                         ))
@@ -282,7 +283,7 @@ class ExportKeybase():
                             msg_type = "edit",
                             txt_body =  message["msg"]["content"]["edit"]["body"],
                             from_user = message["msg"]["sender"]["username"],
-                            sent_time = message["msg"]["sent_at"],
+                            sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                             msg_reference = root_msg.first().id
                         ))
         db.session.commit()

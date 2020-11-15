@@ -14,7 +14,7 @@ class Messages(Base):
     msg_id = Column(Integer)
     msg_type = Column(String(32))
     from_user = Column(String(128))
-    sent_time = Column(Integer)
+    sent_time = Column(DateTime, default=None)
     txt_body = Column(String(4096))
     word_count = Column(Integer)
     num_urls = Column(Integer)
