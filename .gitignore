@@ -1,9 +1,7 @@
 # Do not store data on this repository
 *.json
-<<<<<<< HEAD
-<<<<<<< HEAD
 numpy/
-
+*.xlsx
 pandas/
 =======
 *.sqlite
