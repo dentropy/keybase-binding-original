@@ -162,7 +162,7 @@ class ExportKeybase():
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
                 if message["msg"]["content"]["type"] == "headline":
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "headline",
@@ -172,7 +172,7 @@ class ExportKeybase():
                         ))
                 elif message["msg"]["content"]["type"] == "join":
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "join",
@@ -181,7 +181,7 @@ class ExportKeybase():
                         ))
                 elif message["msg"]["content"]["type"] == "metadata":
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "metadata",
@@ -191,7 +191,7 @@ class ExportKeybase():
                         ))
                 elif message["msg"]["content"]["type"] == "attachment":
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "attachment",
@@ -201,7 +201,7 @@ class ExportKeybase():
                         ))
                 elif message["msg"]["content"]["type"] == "unfurl":
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "unfurl",
@@ -215,7 +215,7 @@ class ExportKeybase():
                     else:
                         at_mention_usernames = None
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "system",
@@ -226,7 +226,7 @@ class ExportKeybase():
                         ))
                 elif message["msg"]["content"]["type"] == "leave":
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "leave",
@@ -235,7 +235,7 @@ class ExportKeybase():
                         ))
                 elif message["msg"]["content"]["type"] == "delete":
                     db.session.add( Messages( 
-                        team = "complexityweekend.oct2020", 
+                        team = message["msg"]["channel"]["name"], 
                         topic = topic,
                         msg_id = message["msg"]["id"],
                         msg_type = "delete",
@@ -247,7 +247,7 @@ class ExportKeybase():
                     urls = self.extractor.find_urls(message["msg"]["content"]["text"]["body"])
                     if len(urls) == 0:
                         db.session.add( Messages( 
-                            team = "complexityweekend.oct2020", 
+                            team = message["msg"]["channel"]["name"], 
                             topic = topic,
                             msg_id = message["msg"]["id"],
                             msg_type = "text",
@@ -259,7 +259,7 @@ class ExportKeybase():
                             ))
                     else:
                         db.session.add( Messages( 
-                            team = "complexityweekend.oct2020", 
+                            team = message["msg"]["channel"]["name"], 
                             topic = topic,
                             msg_id = message["msg"]["id"],
                             msg_type = "text",
@@ -282,7 +282,7 @@ class ExportKeybase():
                     root_msg = db.session.query(Messages).filter_by(topic=topic).filter_by(msg_id = root_msg_id)
                     if root_msg.count() == 1:
                         db.session.add( Messages( 
-                            team = "complexityweekend.oct2020", 
+                            team = message["msg"]["channel"]["name"], 
                             topic = topic,
                             msg_id = message["msg"]["id"],
                             msg_type = "reaction",
@@ -296,7 +296,7 @@ class ExportKeybase():
                     root_msg = db.session.query(Messages).filter_by(topic=topic).filter_by(msg_id = root_msg_id)
                     if root_msg.count() == 1:
                         db.session.add( Messages( 
-                            team = "complexityweekend.oct2020", 
+                            team = message["msg"]["channel"]["name"], 
                             topic = topic,
                             msg_id = message["msg"]["id"],
                             msg_type = "edit",
