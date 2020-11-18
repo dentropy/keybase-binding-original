@@ -1,7 +1,7 @@
 from string import Template
 import subprocess
 import json
-from database import DB, Messages
+from database import DB, Messages, Users
 from urlextract import URLExtract
 import datetime
 
@@ -63,11 +63,31 @@ class ExportKeybase():
         for team in response["result"]["teams"]:
             team_list.append(team["fq_name"])
         user_metadata["teams"] = team_list
-        user_metadata["list-followers"] = subprocess.check_output(["keybase", "list-followers", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
-        user_metadata["list-following"] = subprocess.check_output(["keybase", "list-following", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
+        user_metadata["followers"] = subprocess.check_output(["keybase", "list-followers", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
+        user_metadata["following"] = subprocess.check_output(["keybase", "list-following", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
         return user_metadata
 
-    def export_team_user_metadata(self, team_name, json_file):
+    def export_team_user_metadata_sql(self, team_name, sql_connection_string):
+        """Write a json file of all users and metadata for a given team."""
+        db = DB(sql_connection_string)
+        member_list = self.get_team_memberships(team_name)
+        members = {}
+        for member in member_list:
+            print("Getting " + member + "'s metadata")
+            user_metadata = self.get_user_metadata(member)
+            db.session.add( Users( 
+                username = member, 
+                teams = json.dumps(user_metadata["teams"]), 
+                verification = json.dumps(user_metadata["verification"]), 
+                followers = json.dumps(user_metadata["followers"]), 
+                following =  json.dumps(user_metadata["following"]),
+            ))
+            members[member] = self.get_user_metadata(member)
+        #    members[member]["teams"] = self.get_team_memberships(member)
+        db.session.commit()
+        return members
+
+    def export_team_user_metadata_sqlite(self, team_name, sqlite):
         """Write a json file of all users and metadata for a given team."""
         member_list = self.get_team_memberships(team_name)
         members = {}
@@ -132,7 +152,7 @@ class ExportKeybase():
             mah_messages["topic_name"][topic] = result_msgs
 
         text_file = open(output_file, "w")
-        n = text_file.write(json.dumps(mah_messages))
+        text_file.write(json.dumps(mah_messages))
         text_file.close()
 
 

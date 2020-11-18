@@ -26,6 +26,15 @@ class Messages(Base):
     def __repr__(self):
         return "<Message(id='%d', team='%s', topic='%s', type='%s', from='%s')>" % (self.id, self.team, self.topic, self.msg_type, self.from_user)
 
+class Users(Base):
+    __tablename__ = "Users"
+    id = Column(Integer, primary_key=True)
+    username = Column(String(32))
+    teams = Column(String(1024))
+    verification = Column(String(4096))
+    followers = Column(String(4096))
+    following = Column(String(4096))
+
 class DB(object):
     def __init__(self, database_url):
         engine = create_engine(
