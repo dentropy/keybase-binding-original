@@ -45,16 +45,10 @@ class ExportKeybase():
         user_metadata = {"verification":[]}
         response = subprocess.check_output(["keybase", "id", username],stderr=subprocess.STDOUT, encoding="utf-8")
         response_string = str(response)[1:-1]#response.decode("utf-8")
-        print("TEST")
         for line in response_string.split("\n"):
-            print("line")
-            print(line)
-            print("**********")
             if "admin of" in line:
-                print(line)
                 user_metadata["verification"].append(line.split()[6][5:-6])
         for url in self.extractor.find_urls(response_string):
-            print(url)
             user_metadata["verification"].append(url)
         json_string = '''
         {
@@ -69,6 +63,8 @@ class ExportKeybase():
         for team in response["result"]["teams"]:
             team_list.append(team["fq_name"])
         user_metadata["teams"] = team_list
+        user_metadata["list-followers"] = subprocess.check_output(["keybase", "list-followers", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
+        user_metadata["list-following"] = subprocess.check_output(["keybase", "list-following", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
         return user_metadata
 
     def export_team_user_metadata(self, team_name, json_file):
