@@ -5,6 +5,8 @@
 
 #### `ExportKeybase` Methods ####
 
+This class contains a list of tools for exporting and transforming various types of information from keybase. So far we can export team chat logs with attachments, and user metadata such as what teams they are on, users they follow, users that follow them and where they have verified their identity such as twitter and facebook.
+
 Prior to running any other method, you must first **[export](#generate_json_export)** a `.json` file containing the text chat data (provided that no `.json` file has been exported previously or that you did not copy a `.json` file from elsewhere). Similarly, any method that interfaces to an `SQL` database requires **[conversion](#convert_json_to_sql)** from `.json` to `.sqlite` prior to running.
 
 ##### `generate_json_export` #####
