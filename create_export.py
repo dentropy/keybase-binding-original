@@ -121,6 +121,30 @@ class ExportKeybase():
             mah_channels.append(i["channel"]["topic_name"])
         return mah_channels
 
+    def get_latest_message_id(self, keybase_team_name, keybase_topic_name):
+        """Returns json object of all messages within a Keybase team topic"""
+        get_teams_channels = Template('''{
+        "method": "read",
+            "params": {
+                "options": {
+                    "channel": {
+                        "name": "$TEAM_NAME",
+                        "members_type": "team",
+                        "topic_name": "$TOPIC_NAME"
+                    },
+                    "pagination": {
+                        "num": 1
+                    }
+                }
+            }
+        }
+        ''')
+        dentropydaemon_channels_json = get_teams_channels.substitute(TEAM_NAME=keybase_team_name, TOPIC_NAME=keybase_topic_name)
+        command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
+        response = subprocess.check_output(command)
+        message_object = json.loads(response.decode('utf-8'))
+        return message_object["result"]["messages"][0]["msg"]["id"]
+
     def get_team_chat_channel(self, keybase_team_name, keybase_topic_name):
         """Returns json object of all messages within a Keybase team topic"""
         get_teams_channels = Template('''
