@@ -4,6 +4,7 @@ import json
 from database import DB, Messages, Users
 from urlextract import URLExtract
 import datetime
+from sqlalchemy import distinct, desc
 
 class ExportKeybase():
     def __init__(self):
@@ -540,6 +541,31 @@ class ExportKeybase():
         command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
         response = subprocess.check_output(command)
         return json.loads(response.decode('utf-8'))
+    
+    def get_most_recent_topic_message(self, keybase_team_name, keybase_topic_name):
+        get_teams_channels = Template('''{
+            "method": "read",
+                "params": {
+                    "options": {
+                        "channel": {
+                            "name": "$TEAM_NAME",
+                            "members_type": "team",
+                            "topic_name": "$TOPIC_NAME"
+                        },
+                        "pagination": {
+                            "num": 1
+                        }
+                    }
+                }
+            }
+            ''')
+        dentropydaemon_channels_json = get_teams_channels.substitute(
+            TEAM_NAME=keybase_team_name, 
+            TOPIC_NAME=keybase_topic_name
+        )
+        command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
+        response = subprocess.check_output(command)
+        return json.loads(response.decode('utf-8'))
 
     def get_topic_messages_with_pagination(self, keybase_team_name, keybase_topic_name, PAGIATION):
         get_teams_channels = Template('''{
@@ -580,6 +606,26 @@ class ExportKeybase():
         return mah_messages
 
 
+    
+    def get_until_topic_id(self, team_name, team_topic, min_topic_id):
+        previous_query = self.get_topic_messages_without_pagination(team_name, team_topic)
+        current_msg_id = previous_query["result"]["messages"][0]["msg"]["id"]
+        mah_messages = previous_query
+        for i in range(current_msg_id - int(previous_query["result"]["messages"][0]["msg"]["id"] / 100) ):
+            if "next" in previous_query["result"]["pagination"]:
+                more_messages = self.get_topic_messages_with_pagination(team_name, team_topic, previous_query["result"]["pagination"]["next"])
+                for message in more_messages["result"]["messages"]:
+                    mah_messages["result"]["messages"].append(message)
+                previous_query = more_messages
+        delete_entries = []
+        for message in range(len(mah_messages["result"]["messages"])) :
+            if mah_messages["result"]["messages"][message]["msg"]["id"] < min_topic_id:
+                delete_entries.append(message)
+        delete_entries.reverse()
+        for message_id in delete_entries:
+            del mah_messages["result"]["messages"][message_id]
+        return mah_messages
+        
     def generate_sql_export(self, keybase_team, sql_connection_string):
         """Export keybase team topic messages strait from keybase to an SQL database"""
         keybase_teams = self.get_team_channels(keybase_team)
@@ -590,3 +636,38 @@ class ExportKeybase():
             self.get_root_messages2(mah_messages,db)
             self.get_reaction_messages2(mah_messages, db)
         print("Conversion from json to sql complete")
+
+        
+    def test_query(self, keybase_team, topic_name, db):
+        max_db_topic_id = db.session.query(Messages)\
+            .filter_by(team=keybase_team)\
+            .filter_by(topic=topic_name)\
+            .order_by(desc(Messages.msg_id)).limit(1)
+        return max_db_topic_id
+
+    def sync_team_topic(self, keybase_team, sql_connection_string):
+        keybase_teams = self.get_team_channels(keybase_team)
+        db = DB(sql_connection_string)
+        get_db_topics = db.session.query(distinct(Messages.topic)).filter_by(team=keybase_team)
+        db_topic_list = []
+        for topic_name in get_db_topics:
+            db_topic_list.append(topic_name[0])
+        missing_topics = []
+        for topic_name in keybase_teams:
+            if topic_name not in db_topic_list:
+                missing_topics.append(topic_name)
+        if len(missing_topics) != 0:
+            print("Looks like we have a problem")
+        max_message_id = {}
+        for topic_name in db_topic_list:
+            max_db_topic_id = db.session.query(Messages)\
+            .filter_by(team=keybase_team)\
+            .filter_by(topic=topic_name)\
+            .order_by(desc(Messages.msg_id)).limit(1)
+            max_db_topic_id = max_db_topic_id[0].msg_id
+            most_recent_message = self.get_most_recent_topic_message(keybase_team, topic_name)
+            most_recent_message_msg_id = most_recent_message["result"]["messages"][0]["msg"]["id"]
+            if max_db_topic_id != most_recent_message_msg_id:
+                missing_messages = self.get_until_topic_id(keybase_team, topic_name, max_db_topic_id)
+                max_message_id[topic_name] = missing_messages
+        return max_message_id
