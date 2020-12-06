@@ -637,15 +637,7 @@ class ExportKeybase():
             self.get_reaction_messages2(mah_messages, db)
         print("Conversion from json to sql complete")
 
-        
-    def test_query(self, keybase_team, topic_name, db):
-        max_db_topic_id = db.session.query(Messages)\
-            .filter_by(team=keybase_team)\
-            .filter_by(topic=topic_name)\
-            .order_by(desc(Messages.msg_id)).limit(1)
-        return max_db_topic_id
-
-    def sync_team_topic(self, keybase_team, sql_connection_string):
+    def sync_team_topics(self, keybase_team, sql_connection_string):
         keybase_teams = self.get_team_channels(keybase_team)
         db = DB(sql_connection_string)
         get_db_topics = db.session.query(distinct(Messages.topic)).filter_by(team=keybase_team)
@@ -658,7 +650,7 @@ class ExportKeybase():
                 missing_topics.append(topic_name)
         if len(missing_topics) != 0:
             print("Looks like we have a problem")
-        max_message_id = {}
+        mah_missing_messages = {}
         for topic_name in db_topic_list:
             max_db_topic_id = db.session.query(Messages)\
             .filter_by(team=keybase_team)\
@@ -668,6 +660,8 @@ class ExportKeybase():
             most_recent_message = self.get_most_recent_topic_message(keybase_team, topic_name)
             most_recent_message_msg_id = most_recent_message["result"]["messages"][0]["msg"]["id"]
             if max_db_topic_id != most_recent_message_msg_id:
-                missing_messages = self.get_until_topic_id(keybase_team, topic_name, max_db_topic_id)
-                max_message_id[topic_name] = missing_messages
-        return max_message_id
+                missing_messages = self.get_until_topic_id(keybase_team, topic_name, max_db_topic_id + 1)
+                mah_missing_messages[topic_name] = missing_messages
+                self.get_root_messages2(missing_messages,db)
+                self.get_reaction_messages2(missing_messages, db)
+        return mah_missing_messages
