@@ -166,20 +166,6 @@ class ExportKeybase():
         response = subprocess.check_output(command)
         return json.loads(response.decode('utf-8'))
 
-    def generate_json_export(self, keybase_team, output_file):
-        """Creates a json file with specified filename containing all team chat data."""
-        complexity_weekend_teams = self.get_team_channels(keybase_team)
-        mah_messages = {"topic_name":{}}
-        for topic in complexity_weekend_teams:
-            result_msgs = self.get_team_chat_channel(keybase_team, topic)
-            result_msgs["result"]["messages"].reverse()
-            mah_messages["topic_name"][topic] = result_msgs
-
-        text_file = open(output_file, "w")
-        text_file.write(json.dumps(mah_messages))
-        text_file.close()
-
-
     def get_root_messages(self, mah_messages, db):
         """From message list, find text messages, add them to SQL database session, and then commit the session."""
         for topic in mah_messages["topic_name"]:
@@ -272,7 +258,7 @@ class ExportKeybase():
                     if len(urls) == 0:
                         db.session.add( Messages( 
                             team = message["msg"]["channel"]["name"], 
-                            topic = topic,
+                            topic = message["msg"]["message_name"],
                             msg_id = message["msg"]["id"],
                             msg_type = "text",
                             from_user = message["msg"]["sender"]["username"],
@@ -296,7 +282,123 @@ class ExportKeybase():
                             userMentions = json.dumps(message["msg"]["content"]["text"]["userMentions"])
                             ))
         db.session.commit()
-    
+
+        
+    def get_root_messages2(self, mah_messages, db):
+        """From message list, find text messages, add them to SQL database session, and then commit the session."""
+        for message in mah_messages["result"]["messages"]:
+            if message["msg"]["content"]["type"] == "headline":
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "headline",
+                    txt_body =  message["msg"]["content"]["headline"]["headline"],
+                    from_user = message["msg"]["sender"]["username"],
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                    ))
+            elif message["msg"]["content"]["type"] == "join":
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "join",
+                    from_user = message["msg"]["sender"]["username"],
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                    ))
+            elif message["msg"]["content"]["type"] == "metadata":
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "metadata",
+                    from_user = message["msg"]["sender"]["username"],
+                    txt_body =  json.dumps(message["msg"]["content"]["metadata"]),
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"])
+                    ))
+            elif message["msg"]["content"]["type"] == "attachment":
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "attachment",
+                    from_user = message["msg"]["sender"]["username"],
+                    txt_body =  json.dumps(message["msg"]["content"]["attachment"]),
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"])
+                    ))
+            elif message["msg"]["content"]["type"] == "unfurl":
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "unfurl",
+                    from_user = message["msg"]["sender"]["username"],
+                    txt_body =  json.dumps(message["msg"]["content"]["unfurl"]),
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"])
+                    ))
+            elif message["msg"]["content"]["type"] == "system":
+                if "at_mention_usernames" in message["msg"]:
+                    at_mention_usernames = json.dumps(message["msg"]["at_mention_usernames"])
+                else:
+                    at_mention_usernames = None
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "system",
+                    from_user = message["msg"]["sender"]["username"],
+                    txt_body =  json.dumps(message["msg"]["content"]["system"]),
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                    userMentions = at_mention_usernames
+                    ))
+            elif message["msg"]["content"]["type"] == "leave":
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "leave",
+                    from_user = message["msg"]["sender"]["username"],
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                    ))
+            elif message["msg"]["content"]["type"] == "delete":
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "delete",
+                    from_user = message["msg"]["sender"]["username"],
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                    msg_reference = message["msg"]["content"]["delete"]["messageIDs"][0]
+                    ))
+            elif message["msg"]["content"]["type"] == "text":
+                urls = self.extractor.find_urls(message["msg"]["content"]["text"]["body"])
+                if len(urls) == 0:
+                    db.session.add( Messages( 
+                        team = message["msg"]["channel"]["name"], 
+                        topic = message["msg"]["channel"]["topic_name"],
+                        msg_id = message["msg"]["id"],
+                        msg_type = "text",
+                        from_user = message["msg"]["sender"]["username"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                        txt_body =  message["msg"]["content"]["text"]["body"],
+                        word_count = len(message["msg"]["content"]["text"]["body"].split(" ")),
+                        userMentions = json.dumps(message["msg"]["content"]["text"]["userMentions"])
+                        ))
+                else:
+                    db.session.add( Messages( 
+                        team = message["msg"]["channel"]["name"], 
+                        topic = message["msg"]["channel"]["topic_name"],
+                        msg_id = message["msg"]["id"],
+                        msg_type = "text",
+                        from_user = message["msg"]["sender"]["username"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                        txt_body =  message["msg"]["content"]["text"]["body"],
+                        urls = json.dumps(urls),
+                        num_urls = len(urls),
+                        word_count = len(message["msg"]["content"]["text"]["body"].split(" ")),
+                        userMentions = json.dumps(message["msg"]["content"]["text"]["userMentions"])
+                        ))
+        db.session.commit()
     def get_reaction_messages(self, mah_messages, db):
         """From message list, find reactions, add them to SQL database session, and then commit the session."""
         for topic in mah_messages["topic_name"]:
@@ -330,7 +432,20 @@ class ExportKeybase():
                             msg_reference = root_msg.first().id
                         ))
         db.session.commit()
-        
+
+    def generate_json_export(self, keybase_team, output_file):
+        """Creates a json file with specified filename containing all team chat data."""
+        complexity_weekend_teams = self.get_team_channels(keybase_team)
+        mah_messages = {"topic_name":{}}
+        for topic in complexity_weekend_teams:
+            result_msgs = self.get_team_chat_channel(keybase_team, topic)
+            result_msgs["result"]["messages"].reverse()
+            mah_messages["topic_name"][topic] = result_msgs
+
+        text_file = open(output_file, "w")
+        text_file.write(json.dumps(mah_messages))
+        text_file.close()
+
     def convert_json_to_sql(self, json_file, sql_connection_string):
         """Convert json file data to SQL database structure."""
         db = DB(sql_connection_string)
@@ -365,3 +480,78 @@ class ExportKeybase():
                 for column_name in mah_columns:
                     full_row.append(row.__dict__[column_name])
                 out.writerow(full_row)
+                
+    def get_topic_messages_without_pagination(self, keybase_team_name, keybase_topic_name):
+        get_teams_channels = Template('''{
+            "method": "read",
+                "params": {
+                    "options": {
+                        "channel": {
+                            "name": "$TEAM_NAME",
+                            "members_type": "team",
+                            "topic_name": "$TOPIC_NAME"
+                        },
+                        "pagination": {
+                            "num": 100
+                        }
+                    }
+                }
+            }
+            ''')
+        dentropydaemon_channels_json = get_teams_channels.substitute(
+            TEAM_NAME=keybase_team_name, 
+            TOPIC_NAME=keybase_topic_name
+        )
+        command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
+        response = subprocess.check_output(command)
+        return json.loads(response.decode('utf-8'))
+
+    def get_topic_messages_with_pagination(self, keybase_team_name, keybase_topic_name, PAGIATION):
+        get_teams_channels = Template('''{
+        "method": "read",
+            "params": {
+                "options": {
+                    "channel": {
+                        "name": "$TEAM_NAME",
+                        "members_type": "team",
+                        "topic_name": "$TOPIC_NAME"
+                    },
+                    "pagination": {
+                        "next": "$PAGIATION",
+                        "num": 100
+                    }
+                }
+            }
+        }
+        ''')
+        dentropydaemon_channels_json = get_teams_channels.substitute(
+            TEAM_NAME=keybase_team_name, 
+            TOPIC_NAME=keybase_topic_name,
+            PAGIATION = PAGIATION
+        )
+        command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
+        response = subprocess.check_output(command)
+        return json.loads(response.decode('utf-8'))
+
+    def get_all_topic_messages(self, team_name, topic_name):
+        previous_query = self.get_topic_messages_without_pagination(team_name, topic_name)
+        mah_messages = previous_query
+        for i in range(int(previous_query["result"]["messages"][0]["msg"]["id"] / 10)):
+            if "next" in previous_query["result"]["pagination"]:
+                more_messages = self.get_topic_messages_with_pagination(team_name, topic_name, previous_query["result"]["pagination"]["next"])
+                for message in more_messages["result"]["messages"]:
+                    mah_messages["result"]["messages"].append(message)
+                previous_query = more_messages
+        return mah_messages
+
+
+    def generate_sql_export(self, keybase_team, sql_connection_string):
+        """Export keybase team topic messages strait from keybase to an SQL database"""
+        keybase_teams = self.get_team_channels(keybase_team)
+        db = DB(sql_connection_string)
+        mah_messages = {"topic_name":{}}
+        for topic_name in keybase_teams:
+            mah_messages = self.get_all_topic_messages(keybase_team, topic_name)
+            self.get_root_messages2(mah_messages,db)
+            #self.get_reaction_messages(mah_messages, db)
+        print("Conversion from json to sql complete")
