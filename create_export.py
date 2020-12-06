@@ -509,6 +509,7 @@ class ExportKeybase():
         import csv
         with open(csv_file_name, 'w') as f:
             out = csv.writer(f)
+            out.writerow(mah_columns)
             for row in db.session.query(table_object).all():
                 full_row = []
                 for column_name in mah_columns:
