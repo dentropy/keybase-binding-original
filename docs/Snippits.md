@@ -36,11 +36,12 @@ mah_messages = gen.get_all_topic_messages("dentropydaemon", "general")
 print(mah_messages)
 ```
 ## keybase api pagination example
+
 ``` python
 from string import Template
 import subprocess
 import json
-def api_test_001(keybase_team_name, keybase_topic_name):
+def get_topic_messages_without_pagination(keybase_team_name, keybase_topic_name):
     get_teams_channels = Template('''{
         "method": "read",
             "params": {
@@ -51,7 +52,7 @@ def api_test_001(keybase_team_name, keybase_topic_name):
                         "topic_name": "$TOPIC_NAME"
                     },
                     "pagination": {
-                        "num": 10
+                        "num": 100
                     }
                 }
             }
@@ -65,7 +66,7 @@ def api_test_001(keybase_team_name, keybase_topic_name):
     response = subprocess.check_output(command)
     return json.loads(response.decode('utf-8'))
 
-def api_test_002(keybase_team_name, keybase_topic_name, PAGIATION):
+def get_topic_messages_with_pagination(keybase_team_name, keybase_topic_name, PAGIATION):
     get_teams_channels = Template('''{
     "method": "read",
         "params": {
@@ -77,7 +78,7 @@ def api_test_002(keybase_team_name, keybase_topic_name, PAGIATION):
                 },
                 "pagination": {
                     "next": "$PAGIATION",
-                    "num": 10
+                    "num": 100
                 }
             }
         }
@@ -91,6 +92,18 @@ def api_test_002(keybase_team_name, keybase_topic_name, PAGIATION):
     command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
     response = subprocess.check_output(command)
     return json.loads(response.decode('utf-8'))
-logs001 = api_test_001("dentropydaemon", "general")
-logs002 = api_test_002("dentropydaemon", "general", logs001["result"]["pagination"]["next"])
+# logs001 = get_topic_messages_without_pagination("dentropydaemon", "whatcha-up-to")
+# logs002 = get_topic_messages_with_pagination("dentropydaemon", "whatcha-up-to", logs001["result"]["pagination"]["next"])
+def get_all_topic_messages(team_name, topic_name):
+    previous_query = get_topic_messages_without_pagination(team_name, topic_name)
+    mah_messages = previous_query
+    for i in range(int(previous_query["result"]["messages"][0]["msg"]["id"] / 10)):
+        if "next" in previous_query["result"]["pagination"]:
+            more_messages = get_topic_messages_with_pagination(team_name, topic_name, previous_query["result"]["pagination"]["next"])
+            for message in more_messages["result"]["messages"]:
+                mah_messages["result"]["messages"].append(message)
+            previous_query = more_messages
+    return mah_messages
+
+test_messages = get_all_topic_messages("dentropydaemon", "general")
 ```
