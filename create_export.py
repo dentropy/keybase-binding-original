@@ -399,9 +399,10 @@ class ExportKeybase():
                         userMentions = json.dumps(message["msg"]["content"]["text"]["userMentions"])
                         ))
         db.session.commit()
+
     def get_reaction_messages(self, mah_messages, db):
         """From message list, find reactions, add them to SQL database session, and then commit the session."""
-        for topic in mah_messages["topic_name"]:
+        for message in mah_messages["result"]["messages"]:
             for message in mah_messages["topic_name"][topic]["result"]["messages"]:
                 if message["msg"]["content"]["type"] == "reaction":
                     root_msg_id = message["msg"]["content"]["reaction"]["m"]
@@ -409,7 +410,7 @@ class ExportKeybase():
                     if root_msg.count() == 1:
                         db.session.add( Messages( 
                             team = message["msg"]["channel"]["name"], 
-                            topic = topic,
+                            topic = message["msg"]["channel"]["topic_name"],
                             msg_id = message["msg"]["id"],
                             msg_type = "reaction",
                             from_user = message["msg"]["sender"]["username"],
@@ -423,7 +424,7 @@ class ExportKeybase():
                     if root_msg.count() == 1:
                         db.session.add( Messages( 
                             team = message["msg"]["channel"]["name"], 
-                            topic = topic,
+                            topic = message["msg"]["channel"]["topic_name"],
                             msg_id = message["msg"]["id"],
                             msg_type = "edit",
                             txt_body =  message["msg"]["content"]["edit"]["body"],
@@ -431,6 +432,39 @@ class ExportKeybase():
                             sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
                             msg_reference = root_msg.first().id
                         ))
+        db.session.commit()
+        
+    def get_reaction_messages2(self, mah_messages, db):
+        """From message list, find reactions, add them to SQL database session, and then commit the session."""
+        for message in mah_messages["result"]["messages"]:
+            if message["msg"]["content"]["type"] == "reaction":
+                root_msg_id = message["msg"]["content"]["reaction"]["m"]
+                root_msg = db.session.query(Messages).filter_by(topic=message["msg"]["channel"]["topic_name"]).filter_by(msg_id = root_msg_id)
+                if root_msg.count() == 1:
+                    db.session.add( Messages( 
+                        team = message["msg"]["channel"]["name"], 
+                        topic = message["msg"]["channel"]["topic_name"],
+                        msg_id = message["msg"]["id"],
+                        msg_type = "reaction",
+                        from_user = message["msg"]["sender"]["username"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                        reaction_body =  message["msg"]["content"]["reaction"]["b"],
+                        msg_reference = root_msg.first().id
+                    ))
+            if message["msg"]["content"]["type"] == "edit":
+                root_msg_id = message["msg"]["content"]["edit"]["messageID"]
+                root_msg = db.session.query(Messages).filter_by(topic=message["msg"]["channel"]["topic_name"]).filter_by(msg_id = root_msg_id)
+                if root_msg.count() == 1:
+                    db.session.add( Messages( 
+                        team = message["msg"]["channel"]["name"], 
+                        topic = message["msg"]["channel"]["topic_name"],
+                        msg_id = message["msg"]["id"],
+                        msg_type = "edit",
+                        txt_body =  message["msg"]["content"]["edit"]["body"],
+                        from_user = message["msg"]["sender"]["username"],
+                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                        msg_reference = root_msg.first().id
+                    ))
         db.session.commit()
 
     def generate_json_export(self, keybase_team, output_file):
@@ -553,5 +587,5 @@ class ExportKeybase():
         for topic_name in keybase_teams:
             mah_messages = self.get_all_topic_messages(keybase_team, topic_name)
             self.get_root_messages2(mah_messages,db)
-            #self.get_reaction_messages(mah_messages, db)
+            self.get_reaction_messages2(mah_messages, db)
         print("Conversion from json to sql complete")
