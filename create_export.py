@@ -439,34 +439,28 @@ class ExportKeybase():
         """From message list, find reactions, add them to SQL database session, and then commit the session."""
         for message in mah_messages["result"]["messages"]:
             if message["msg"]["content"]["type"] == "reaction":
-                root_msg_id = message["msg"]["content"]["reaction"]["m"]
-                root_msg = db.session.query(Messages).filter_by(topic=message["msg"]["channel"]["topic_name"]).filter_by(msg_id = root_msg_id)
-                if root_msg.count() == 1:
-                    db.session.add( Messages( 
-                        team = message["msg"]["channel"]["name"], 
-                        topic = message["msg"]["channel"]["topic_name"],
-                        msg_id = message["msg"]["id"],
-                        msg_type = "reaction",
-                        from_user = message["msg"]["sender"]["username"],
-                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
-                        reaction_body =  message["msg"]["content"]["reaction"]["b"],
-                        msg_reference = root_msg.first().id
-                    ))
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "reaction",
+                    from_user = message["msg"]["sender"]["username"],
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                    reaction_body =  message["msg"]["content"]["reaction"]["b"],
+                    msg_reference = message["msg"]["content"]["reaction"]["m"]
+                ))
             if message["msg"]["content"]["type"] == "edit":
-                root_msg_id = message["msg"]["content"]["edit"]["messageID"]
-                root_msg = db.session.query(Messages).filter_by(topic=message["msg"]["channel"]["topic_name"]).filter_by(msg_id = root_msg_id)
-                if root_msg.count() == 1:
-                    db.session.add( Messages( 
-                        team = message["msg"]["channel"]["name"], 
-                        topic = message["msg"]["channel"]["topic_name"],
-                        msg_id = message["msg"]["id"],
-                        msg_type = "edit",
-                        txt_body =  message["msg"]["content"]["edit"]["body"],
-                        from_user = message["msg"]["sender"]["username"],
-                        sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
-                        msg_reference = root_msg.first().id
-                    ))
-        db.session.commit()
+                db.session.add( Messages( 
+                    team = message["msg"]["channel"]["name"], 
+                    topic = message["msg"]["channel"]["topic_name"],
+                    msg_id = message["msg"]["id"],
+                    msg_type = "edit",
+                    txt_body =  message["msg"]["content"]["edit"]["body"],
+                    from_user = message["msg"]["sender"]["username"],
+                    sent_time = datetime.datetime.utcfromtimestamp(message["msg"]["sent_at"]),
+                    msg_reference = message["msg"]["content"]["edit"]["messageID"]
+                ))
+        return db.session.commit()
 
     def generate_json_export(self, keybase_team, output_file):
         """Creates a json file with specified filename containing all team chat data."""
@@ -644,6 +638,7 @@ class ExportKeybase():
         db_topic_list = []
         for topic_name in get_db_topics:
             db_topic_list.append(topic_name[0])
+        print(db_topic_list)
         missing_topics = []
         for topic_name in keybase_teams:
             if topic_name not in db_topic_list:
@@ -652,6 +647,8 @@ class ExportKeybase():
             print("Looks like we have a problem")
         mah_missing_messages = {}
         for topic_name in db_topic_list:
+            print("topic_name")
+            print(topic_name)
             max_db_topic_id = db.session.query(Messages)\
             .filter_by(team=keybase_team)\
             .filter_by(topic=topic_name)\
@@ -663,5 +660,6 @@ class ExportKeybase():
                 missing_messages = self.get_until_topic_id(keybase_team, topic_name, max_db_topic_id + 1)
                 mah_missing_messages[topic_name] = missing_messages
                 self.get_root_messages2(missing_messages,db)
-                self.get_reaction_messages2(missing_messages, db)
-        return mah_missing_messages
+                test_var =  self.get_reaction_messages2(missing_messages, db)
+        return test_var
+        #return mah_missing_messages
