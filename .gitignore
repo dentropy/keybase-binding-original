@@ -7,7 +7,7 @@ pandas/
 *.sqlite
 *.csv
 MDLib/
-
+experiment*
 # Test python script for local development
 test.py
 
