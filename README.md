@@ -98,6 +98,7 @@ The Python analysis pipeline is object-oriented. Three `Python` classes run most
     
 * *Note: this is a simpler class that really only has a constructor and properties related to the variables of interest that are extracted from the `Keybase` data.*
 
+---
 
 ## Notes ##
 
