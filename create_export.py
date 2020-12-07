@@ -139,11 +139,6 @@ class ExportKeybase():
         command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
         response = subprocess.check_output(command)
         return json.loads(response.decode('utf-8'))
-    
-    def get_latest_message_id(self, keybase_team_name, keybase_topic_name):
-        """Returns number of latest message_id"""
-        self.get_latest_topic_message(keybase_team_name, keybase_topic_name)
-        return message_object["result"]["messages"][0]["msg"]["id"]
 
     def get_topic_messages_without_pagination(self, keybase_team_name, keybase_topic_name):
         get_teams_channels = Template('''{
@@ -464,11 +459,10 @@ class ExportKeybase():
             .filter_by(topic=topic_name)\
             .order_by(desc(Messages.msg_id)).limit(1)
             max_db_topic_id = max_db_topic_id[0].msg_id
-            most_recent_message = self.get_most_recent_topic_message(keybase_team, topic_name)
+            most_recent_message = self.get_latest_topic_message(keybase_team, topic_name)
             most_recent_message_msg_id = most_recent_message["result"]["messages"][0]["msg"]["id"]
             if max_db_topic_id != most_recent_message_msg_id:
                 missing_messages = self.get_until_topic_id(keybase_team, topic_name, max_db_topic_id + 1)
                 mah_missing_messages[topic_name] = missing_messages
-                self.get_root_messages2(missing_messages,db)
-                test_var =  self.get_reaction_messages2(missing_messages, db)
+                self.get_root_messages(missing_messages,db)
         return mah_missing_messages

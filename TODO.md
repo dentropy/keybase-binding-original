@@ -1,8 +1,5 @@
 ## TODO
 
-- [ ] *Code review create_export*
-###### TODO ######
-
 - [ ] **Change create_export.py export_team_user_metadata so it returns an object instead of writing to disk.**
 - [ ] *Record in database if reaction, or edit message was deleted*
 - [ ] *Fix public/private scoping on class properties and methods.*
@@ -39,7 +36,7 @@ Graph of [*data*] [*type*] broken down by [*view*], where [*type*] is:
 - [ ] User in Channel
 - [ ] Day of week
 
-##### Example of "Activity" proxy #####
+##### Example of "Activity" proxy
 
 Average message length per
 
