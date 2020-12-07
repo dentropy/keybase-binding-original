@@ -64,8 +64,10 @@ class ExportKeybase():
         for team in response["result"]["teams"]:
             team_list.append(team["fq_name"])
         user_metadata["teams"] = team_list
-        user_metadata["followers"] = subprocess.check_output(["keybase", "list-followers", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
-        user_metadata["following"] = subprocess.check_output(["keybase", "list-following", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
+        user_metadata["followers"] = subprocess.check_output(
+            ["keybase", "list-followers", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
+        user_metadata["following"] = subprocess.check_output(
+            ["keybase", "list-following", username],stderr=subprocess.STDOUT, encoding="utf-8").split("\n")
         return user_metadata
 
     
@@ -92,30 +94,6 @@ class ExportKeybase():
             mah_channels.append(i["channel"]["topic_name"])
         return mah_channels
 
-    def get_latest_message_id(self, keybase_team_name, keybase_topic_name):
-        """Returns json object of all messages within a Keybase team topic"""
-        get_teams_channels = Template('''{
-        "method": "read",
-            "params": {
-                "options": {
-                    "channel": {
-                        "name": "$TEAM_NAME",
-                        "members_type": "team",
-                        "topic_name": "$TOPIC_NAME"
-                    },
-                    "pagination": {
-                        "num": 1
-                    }
-                }
-            }
-        }
-        ''')
-        dentropydaemon_channels_json = get_teams_channels.substitute(TEAM_NAME=keybase_team_name, TOPIC_NAME=keybase_topic_name)
-        command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
-        response = subprocess.check_output(command)
-        message_object = json.loads(response.decode('utf-8'))
-        return message_object["result"]["messages"][0]["msg"]["id"]
-
     def get_team_chat_channel(self, keybase_team_name, keybase_topic_name):
         """Returns json object of all messages within a Keybase team topic"""
         get_teams_channels = Template('''
@@ -137,6 +115,36 @@ class ExportKeybase():
         response = subprocess.check_output(command)
         return json.loads(response.decode('utf-8'))
  
+    def get_latest_topic_message(self, keybase_team_name, keybase_topic_name):
+        get_teams_channels = Template('''{
+            "method": "read",
+                "params": {
+                    "options": {
+                        "channel": {
+                            "name": "$TEAM_NAME",
+                            "members_type": "team",
+                            "topic_name": "$TOPIC_NAME"
+                        },
+                        "pagination": {
+                            "num": 1
+                        }
+                    }
+                }
+            }
+            ''')
+        dentropydaemon_channels_json = get_teams_channels.substitute(
+            TEAM_NAME=keybase_team_name, 
+            TOPIC_NAME=keybase_topic_name
+        )
+        command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
+        response = subprocess.check_output(command)
+        return json.loads(response.decode('utf-8'))
+    
+    def get_latest_message_id(self, keybase_team_name, keybase_topic_name):
+        """Returns number of latest message_id"""
+        self.get_latest_topic_message(keybase_team_name, keybase_topic_name)
+        return message_object["result"]["messages"][0]["msg"]["id"]
+
     def get_topic_messages_without_pagination(self, keybase_team_name, keybase_topic_name):
         get_teams_channels = Template('''{
             "method": "read",
@@ -162,31 +170,6 @@ class ExportKeybase():
         response = subprocess.check_output(command)
         return json.loads(response.decode('utf-8'))
     
-    def get_most_recent_topic_message(self, keybase_team_name, keybase_topic_name):
-        get_teams_channels = Template('''{
-            "method": "read",
-                "params": {
-                    "options": {
-                        "channel": {
-                            "name": "$TEAM_NAME",
-                            "members_type": "team",
-                            "topic_name": "$TOPIC_NAME"
-                        },
-                        "pagination": {
-                            "num": 1
-                        }
-                    }
-                }
-            }
-            ''')
-        dentropydaemon_channels_json = get_teams_channels.substitute(
-            TEAM_NAME=keybase_team_name, 
-            TOPIC_NAME=keybase_topic_name
-        )
-        command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
-        response = subprocess.check_output(command)
-        return json.loads(response.decode('utf-8'))
-
     def get_topic_messages_with_pagination(self, keybase_team_name, keybase_topic_name, PAGIATION):
         get_teams_channels = Template('''{
         "method": "read",
@@ -213,19 +196,6 @@ class ExportKeybase():
         command = ["keybase", "chat", "api", "-m", dentropydaemon_channels_json]
         response = subprocess.check_output(command)
         return json.loads(response.decode('utf-8'))
-
-    def get_all_topic_messages(self, team_name, topic_name):
-        previous_query = self.get_topic_messages_without_pagination(team_name, topic_name)
-        mah_messages = previous_query
-        for i in range(int(previous_query["result"]["messages"][0]["msg"]["id"] / 10)):
-            if "next" in previous_query["result"]["pagination"]:
-                more_messages = self.get_topic_messages_with_pagination(team_name, topic_name, previous_query["result"]["pagination"]["next"])
-                for message in more_messages["result"]["messages"]:
-                    mah_messages["result"]["messages"].append(message)
-                previous_query = more_messages
-        return mah_messages
-
-
     
     def get_until_topic_id(self, team_name, team_topic, min_topic_id):
         previous_query = self.get_topic_messages_without_pagination(team_name, team_topic)
@@ -233,7 +203,8 @@ class ExportKeybase():
         mah_messages = previous_query
         for i in range(current_msg_id - int(previous_query["result"]["messages"][0]["msg"]["id"] / 100) ):
             if "next" in previous_query["result"]["pagination"]:
-                more_messages = self.get_topic_messages_with_pagination(team_name, team_topic, previous_query["result"]["pagination"]["next"])
+                more_messages = self.get_topic_messages_with_pagination(team_name, 
+                    team_topic, previous_query["result"]["pagination"]["next"])
                 for message in more_messages["result"]["messages"]:
                     mah_messages["result"]["messages"].append(message)
                 previous_query = more_messages
@@ -423,7 +394,7 @@ class ExportKeybase():
         db = DB(sql_connection_string)
         mah_messages = {"topic_name":{}}
         for topic_name in keybase_teams:
-            mah_messages = self.get_all_topic_messages(keybase_team, topic_name)
+            mah_messages = self.get_until_topic_id(keybase_team, topic_name, 0)
             self.get_root_messages(mah_messages,db)
         print("Conversion from json to sql complete")
 

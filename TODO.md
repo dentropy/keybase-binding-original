@@ -1,9 +1,13 @@
 ## TODO
 
 - [ ] *Code review create_export*
+###### TODO ######
+
+- [ ] **Change create_export.py export_team_user_metadata so it returns an object instead of writing to disk.**
+- [ ] *Record in database if reaction, or edit message was deleted*
 - [ ] *Fix public/private scoping on class properties and methods.*
 - [ ] *Document every method*
-- [ ] **Real time export / Sync up without full export**
+- [ ] **Real time export / Sync up without full export** using pykeybasebot
 - [ ] *Create a bot that automatically appends data to the `.sqlite` database with each new message on text channels it "lives" in.*
 - [ ] *Use something like the `plotly` package to turn existing `Jupyter` notebooks into embeddable (or linkable) dashboards, which can then be accessed from the **[wiki](https://wiki.dentropydaemon.io/Dashboards)**, embedded in a local application, or hosted elsewhere?*
 - [ ] Hook up the database to `graphql`
