@@ -31,7 +31,6 @@ ex_key = ExportKeybase()
 * [get_until_topic_id](#get_until_topic_id)
 * [get_all_topic_messages](#get_all_topic_messages)
 * [export_team_user_metadata_sql](#export_team_user_metadata_sql)
-* [export_team_user_metadata_sqlite](#export_team_user_metadata_sqlite)
 * [get_root_messages](#get_root_messages)
 * [generate_sql_export](#generate_sql_export)
 * [generate_json_export](#generate_json_export)
@@ -105,8 +104,6 @@ members = ExportKeybase.export_team_user_metadata_sql()
 
 Write a `.json` file of all users, where they are verified, and what teams they belong to.
 
-
-##### `export_team_user_metadata_sqlite` #####
 
 ##### `get_root_messages` #####
 

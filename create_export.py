@@ -213,7 +213,7 @@ class ExportKeybase():
         return mah_messages
     
     def export_team_user_metadata_sql(self, team_name, sql_connection_string):
-        """Write a json file of all users and metadata for a given team."""
+        """Write to sql database all users and metadata for a given team."""
         db = DB(sql_connection_string)
         member_list = self.get_team_memberships(team_name)
         members = {}
@@ -227,22 +227,8 @@ class ExportKeybase():
                 followers = json.dumps(user_metadata["followers"]), 
                 following =  json.dumps(user_metadata["following"]),
             ))
-            members[member] = self.get_user_metadata(member)
-        #    members[member]["teams"] = self.get_team_memberships(member)
+            members[member] = user_metadata
         db.session.commit()
-        return members
-
-    
-    # TODO
-    def export_team_user_metadata_sqlite(self, team_name, sqlite):
-        """Write a json file of all users and metadata for a given team."""
-        member_list = self.get_team_memberships(team_name)
-        members = {}
-        for member in member_list:
-            members[member] = self.get_user_metadata(member)
-        #    members[member]["teams"] = self.get_team_memberships(member)
-        with open(json_file, 'w') as fp:
-            json.dump(members, fp)
         return members
      
     def get_root_messages(self, mah_messages, db):
