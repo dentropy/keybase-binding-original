@@ -1,6 +1,7 @@
 from database import DB, Messages
 from sqlalchemy import func, asc
 import pandas as pd
+from datetime import *
 from sqlalchemy import distinct
 from urlextract import URLExtract
 from tld import get_fld
@@ -25,7 +26,7 @@ class GenerateAnalytics():
         list_of_strings = []
         for i in user_messages:
             list_of_strings.append([ i.txt_body , i.sent_time])
-        return list_of_strings
+        return user_messages
 
     def get_all_user_messages(self, team, user):
         user_messages = self.db.session.query(Messages).query(Messages)\
@@ -430,7 +431,7 @@ class GenerateAnalytics():
         for msg in text_messages:
             message_data["user"].append(msg.from_user)
             message_data["msg_id"].append(msg.msg_id)
-            message_data["time"].append(msg.sent_time-offset_time)
+            message_data["time"].append((msg.sent_time - datetime(1970, 1, 1)).total_seconds()-offset_time)
             message_data["team"].append(msg.team)
             message_data["topic"].append(msg.topic)
             message_data["text"].append(msg.txt_body)
