@@ -19,39 +19,26 @@ class GenerateAnalytics():
         return self.db.session.query(Messages).get(message_id)
 
     def get_all_team_messages(self, team):
-        user_messages = self.db.session.query(Messages)\
+        return self.db.session.query(Messages)\
             .order_by(asc(Messages.sent_time))\
             .filter(Messages.msg_type == "text")\
             .filter(Messages.team == team)
-        list_of_strings = []
-        for i in user_messages:
-            list_of_strings.append([ i.txt_body , i.sent_time])
-        return user_messages
 
     def get_all_user_messages(self, team, user):
-        user_messages = self.db.session.query(Messages).query(Messages)\
+        return self.db.session.query(Messages).query(Messages)\
             .order_by(asc(Messages.sent_time))\
             .filter(Messages.txt_body != None)\
             .filter(Messages.msg_type == "text")\
             .filter(Messages.team == team)\
             .filter(Messages.from_user == user)
-        list_of_strings = []
-        for i in user_messages:
-            list_of_strings.append(i.txt_body)
-        return list_of_strings
 
     def get_all_topic_messages(self, team, topic):
-        user_messages = self.db.session.query(Messages).query(Messages)\
+        return self.db.session.query(Messages).query(Messages)\
             .order_by(asc(Messages.sent_time))\
             .filter(Messages.txt_body != None)\
             .filter(Messages.msg_type == "text")\
             .filter(Messages.team == team)\
             .filter(Messages.from_user == topic)
-        list_of_strings = []
-        for i in user_messages:
-            list_of_strings.append(i.txt_body)
-        return list_of_strings
-
 
     def get_num_messages_from_user(self, username):
         """Return object with number of times a text was edited or deleted for a given user."""
@@ -94,7 +81,6 @@ class GenerateAnalytics():
         individual_topic = self.db.session.query(distinct(Messages.topic))
         topic_list = []
         for topic in individual_topic:
-            print(topic)
             topic_list.append(topic[0])
         return topic_list
 
