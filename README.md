@@ -23,6 +23,10 @@ This repository contains code for Python3, Matlab, and Obsidian, which can be us
   * [`tld`](https://pypi.org/project/tld/): Python package for extracting top-level domain (TLD) from text.
   * [`URLExtract`](https://pypi.org/project/urlextract/): Python package for extracting URLs based on TLD.
 
+``` bash
+pip3 install jupyter pandas joypy sqlalchemy matplotlib tld URLExtract
+```
+
 #### MATLAB ####
 
 * All **[`MATLAB`](https://www.mathworks.com/)** analyses were conducted in version *R2020b*, with the full suite of toolboxes installed. None of it is core or essential to looking at these data, but it's an option if you have access to the toolboxes. 
