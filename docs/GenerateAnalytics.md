@@ -7,6 +7,17 @@
 
 The properties of the `GeneratedAnalytics` class are maybe best to think of as "data reports." `GeneratedAnalytics` "reports" are refreshed by corresponding **[Methods](#generatedanalytics-methods)**.
 
+# Generalized Pattern
+
+{
+"type" : STR
+"title": STR
+"x_axis": LIST of STR or INT
+"y_axis": LIST of INT
+"x_label": STR
+"y_label": STR
+}
+
 ##### `user_list` #####
 
 ```python

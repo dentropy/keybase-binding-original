@@ -6,7 +6,7 @@ from sqlalchemy import distinct
 from urlextract import URLExtract
 from tld import get_fld
 import json
-
+import pprint
 class GenerateAnalytics():
     def __init__(self, db_url):
         """GeneratedAnalytics class constructor."""
@@ -86,19 +86,26 @@ class GenerateAnalytics():
 
     def get_characters_per_user(self):
         """Update and return total number of characters from messages for each user."""
-        characters_per_message = {}
+        store_message_state = {}
+        characters_per_user = {
+            "type":"Show X Axis",
+            "x_label":"user",
+            "y_label":"characters_per_user",
+            "x_axis":[],
+            "y_axis":[]
+        }
         for user in self.user_list:
-            characters_per_message[user] = 0
+            store_message_state[user] = 0
             user_messages = self.db.session.query(Messages).\
                 filter(Messages.txt_body != None).\
                 filter_by(from_user=user)
             for message in user_messages:
-                characters_per_message[user] += len(message.txt_body)
-        list_of_users = sorted(characters_per_message, key = characters_per_message.get, reverse=True)
-        characters_per_user = {"user": [], "characters_per_user": []}
+                store_message_state[user] += len(message.txt_body)
+        list_of_users = sorted(store_message_state, key = store_message_state.get, reverse=True)
         for item in list_of_users:
-            characters_per_user["user"].append(item)
-            characters_per_user["characters_per_user"].append(characters_per_message[item])
+            characters_per_user["x_axis"].append(item)
+            characters_per_user["y_axis"].append(store_message_state[item])
+        characters_per_user["title"] = "Characters Per User, Num Users = " + str(len(characters_per_user["x_axis"]))
         return characters_per_user
 
     def get_characters_per_topic(self):
@@ -110,10 +117,17 @@ class GenerateAnalytics():
             for message in topic_messages:
                 messages_per_topic[topic] += len(message.txt_body)
         list_of_users = sorted(messages_per_topic, key = messages_per_topic.get, reverse=True)
-        characters_per_topic = {"topic": [], "characters_per_topic": []}
+        characters_per_topic = {
+            "type":"Show X Axis",
+            "x_label":"topic",
+            "y_label":"characters_per_topic",
+            "x_axis":[],
+            "y_axis":[],
+            "title": "Messages Per Topic, Num Topics = " + str(len(messages_per_topic))
+        }
         for item in list_of_users:
-            characters_per_topic["topic"].append(item)
-            characters_per_topic["characters_per_topic"].append(messages_per_topic[item])
+            characters_per_topic["x_axis"].append(item)
+            characters_per_topic["y_axis"].append(messages_per_topic[item])
         return characters_per_topic
 
     def get_messages_per_user(self):
