@@ -19,26 +19,37 @@ class GenerateAnalytics():
         return self.db.session.query(Messages).get(message_id)
 
     def get_all_team_messages(self, team):
+        """Get all messages from a single team."""
         return self.db.session.query(Messages)\
             .order_by(asc(Messages.sent_time))\
             .filter(Messages.msg_type == "text")\
             .filter(Messages.team == team)
 
-    def get_all_user_messages(self, team, user):
-        return self.db.session.query(Messages).query(Messages)\
+    def get_all_user_messages(self, user):
+        """Get all messages from a single user."""
+        return self.db.session.query(Messages)\
             .order_by(asc(Messages.sent_time))\
             .filter(Messages.txt_body != None)\
             .filter(Messages.msg_type == "text")\
-            .filter(Messages.team == team)\
             .filter(Messages.from_user == user)
 
     def get_all_topic_messages(self, team, topic):
-        return self.db.session.query(Messages).query(Messages)\
+        """Get all messages from single topic from a specific team."""
+        return self.db.session.query(Messages)\
             .order_by(asc(Messages.sent_time))\
             .filter(Messages.txt_body != None)\
             .filter(Messages.msg_type == "text")\
             .filter(Messages.team == team)\
             .filter(Messages.from_user == topic)
+
+    def get_user_messages_from_team(self, team_name, username):
+        """Get all messages from a single user on a single team."""
+        return self.db.session.query(Messages)\
+            .order_by(asc(Messages.sent_time))\
+            .filter(Messages.txt_body != None)\
+            .filter(Messages.msg_type == "text")\
+            .filter(Messages.team == team_name)\
+            .filter(Messages.from_user == user)
 
     def get_num_messages_from_user(self, username):
         """Return object with number of times a text was edited or deleted for a given user."""
