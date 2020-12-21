@@ -1,5 +1,6 @@
 ## TODO
 
+- [ ] Break Generate Analytics into more classes
 - [ ] *Fix public/private scoping on class properties and methods.*
 - [ ] Hook up the database to `graphql`
 - [ ] *Create a bot that automatically appends data to the `.sqlite` database with each new message on text channels it "lives" in.*

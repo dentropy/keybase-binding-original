@@ -263,7 +263,7 @@ class GenerateAnalytics():
         reaction_popularity["list"] = sorted(reaction_popularity["reactions"], key = reaction_popularity["reactions"].get, reverse=True)
         return reaction_popularity
 
-    
+    # Move this somewhere else
     def get_all_user_message_id(self, user):
         """For a specific user, return all message IDs involving that user."""
         user_messages = {"text":[], "reaction":[], "attachment":[]}
@@ -285,10 +285,21 @@ class GenerateAnalytics():
             mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
             reactions_per_user["users_reactions"][user] = mah_messages.count()
         reactions_per_user["users_ordered"] = sorted(
-            self.reactions_per_user["users_reactions"], 
-            key = self.reactions_per_user["users_reactions"].get, 
+            reactions_per_user["users_reactions"], 
+            key = reactions_per_user["users_reactions"].get, 
             reverse=True)
-        return reactions_per_user
+        y_axis = []
+        for item in reactions_per_user["users_ordered"]:
+            y_axis.append(reactions_per_user["users_reactions"][item])
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users Ordered",
+            "y_label":"Num Reactions",
+            "x_axis": reactions_per_user["users_ordered"],
+            "y_axis":y_axis,
+            "title": "Users Who Sent Most Reactions, Num Users = " +  str(len(reactions_per_user["users_reactions"]))
+        }
+        return graph_data
 
     def get_user_recieved_most_reactions(self):
         """Update and return the sorted listing of users by number of reactions received."""
@@ -300,11 +311,22 @@ class GenerateAnalytics():
                 recieved_most_reactions["users_reactions"][mah_message.from_user] = 1
             else:
                 recieved_most_reactions["users_reactions"][mah_message.from_user] += 1
-        recieved_most_reactions["users_orderd"] = sorted(
-            self.recieved_most_reactions["users_reactions"], 
-            key = self.recieved_most_reactions["users_reactions"].get, 
+        recieved_most_reactions["users_ordered"] = sorted(
+            recieved_most_reactions["users_reactions"], 
+            key = recieved_most_reactions["users_reactions"].get, 
             reverse=True)
-        return recieved_most_reactions
+        y_axis = []
+        for item in recieved_most_reactions["users_ordered"]:
+            y_axis.append(recieved_most_reactions["users_reactions"][item])
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users Ordered",
+            "y_label":"Num Reactions",
+            "x_axis": recieved_most_reactions["users_ordered"],
+            "y_axis": y_axis,
+            "title": "Users Recieved Most Reactions, Num Users = " +  str(len(recieved_most_reactions["users_reactions"]))
+        }
+        return graph_data
 
                                
     def get_edits_per_user(self):
@@ -317,7 +339,15 @@ class GenerateAnalytics():
         edits_per_user["ordered_users"] = sorted(edits_per_user["users"], key = edits_per_user["users"].get, reverse=True)
         for item in edits_per_user["ordered_users"]:
             edits_per_user["ordered_num_edits"].append(edits_per_user["users"][item])
-        return edits_per_user
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Num Edits",
+            "x_axis": edits_per_user["ordered_users"],
+            "y_axis": edits_per_user["ordered_num_edits"],
+            "title": "Edits Per User, Num Users = " +  str(len(edits_per_user["ordered_users"]))
+        }
+        return graph_data
     
     def get_edits_per_topic(self):
         """Update and return the raw number of edited message by topic."""
@@ -329,7 +359,15 @@ class GenerateAnalytics():
         edits_per_topic["ordered_topics"] = sorted(edits_per_topic["topics"], key = edits_per_topic["topics"].get, reverse=True)
         for item in edits_per_topic["ordered_topics"]:
             edits_per_topic["ordered_num_edits"].append(edits_per_topic["topics"][item])
-        return edits_per_topic
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Num Edits",
+            "x_axis": edits_per_topic["ordered_topics"],
+            "y_axis": edits_per_topic["ordered_num_edits"],
+            "title": "Edits Per Topic, Num Topics = " +  str(len(edits_per_topic["ordered_topics"]))
+        }
+        return graph_data
 
     def get_deletes_per_user(self):
         """Update and return the raw number of deleted messages by user."""
@@ -341,7 +379,15 @@ class GenerateAnalytics():
         deletes_per_user["ordered_users"] = sorted(deletes_per_user["users"], key = deletes_per_user["users"].get, reverse=True)
         for item in deletes_per_user["ordered_users"]:
             deletes_per_user["ordered_num_deletes"].append(deletes_per_user["users"][item])
-        return deletes_per_user
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Num Edits",
+            "x_axis": deletes_per_user["ordered_users"],
+            "y_axis": deletes_per_user["ordered_num_deletes"],
+            "title": "Deletes Per User, Num Users = " +  str(len(deletes_per_user["ordered_users"]))
+        }
+        return graph_data
 
 
     def get_deletes_per_topic(self):
@@ -354,7 +400,15 @@ class GenerateAnalytics():
         deletes_per_topic["ordered_topics"] = sorted(deletes_per_topic["topics"], key = deletes_per_topic["topics"].get, reverse=True)
         for item in deletes_per_topic["ordered_topics"]:
             deletes_per_topic["ordered_num_deletes"].append(deletes_per_topic["topics"][item])
-        return deletes_per_topic
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Num Edits",
+            "x_axis": deletes_per_topic["ordered_topics"],
+            "y_axis": deletes_per_topic["ordered_num_deletes"],
+            "title": "Deletes Per Topic, Num Topics = " +  str(len(deletes_per_topic["ordered_topics"]))
+        }
+        return graph_data
     
 
     def get_who_edits_most_per_capita(self):
@@ -369,21 +423,40 @@ class GenerateAnalytics():
         who_edits_most_per_capita["ordered_users"] = sorted(who_edits_most_per_capita["users"], key = who_edits_most_per_capita["users"].get, reverse=True)
         for user in who_edits_most_per_capita["ordered_users"]:
             who_edits_most_per_capita["ordered_edit_per_capita"].append(who_edits_most_per_capita["users"][user])
-        return who_edits_most_per_capita
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Edits Per Capita, Percentage",
+            "x_axis": who_edits_most_per_capita["ordered_users"],
+            "y_axis": who_edits_most_per_capita["ordered_edit_per_capita"],
+            "title": "User Edits Per Capita, Num Users = " +  str(len(who_edits_most_per_capita["ordered_users"]))
+        }
+        return graph_data
 
     def get_who_deletes_most_per_capita(self):
         """Update and return the per-capita message deletions by user."""
-        self.who_deletes_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
+        who_deletes_most_per_capita = {"users":{}, "ordered_users":[], "ordered_edit_per_capita" : []}
         for user in self.user_list:
             mah_metadata = self.get_num_messages_from_user(user)
             if mah_metadata['delete'] != 0 and mah_metadata['text'] != 0:     
-                self.who_deletes_most_per_capita["users"][user] = mah_metadata['delete'] / mah_metadata['text'] * 100 
+                who_deletes_most_per_capita["users"][user] = mah_metadata['delete'] / mah_metadata['text'] * 100 
             else:
-                self.who_deletes_most_per_capita["users"][user] = 0
-        self.who_deletes_most_per_capita["ordered_users"] = sorted(self.who_deletes_most_per_capita["users"], key = self.who_deletes_most_per_capita["users"].get, reverse=True)
-        for user in self.who_deletes_most_per_capita["ordered_users"]:
-            self.who_deletes_most_per_capita["ordered_edit_per_capita"].append(self.who_deletes_most_per_capita["users"][user])
-        return self.who_deletes_most_per_capita
+                who_deletes_most_per_capita["users"][user] = 0
+        who_deletes_most_per_capita["ordered_users"] = sorted(
+            who_deletes_most_per_capita["users"], 
+            key = who_deletes_most_per_capita["users"].get, 
+            reverse=True)
+        for user in who_deletes_most_per_capita["ordered_users"]:
+            who_deletes_most_per_capita["ordered_edit_per_capita"].append(who_deletes_most_per_capita["users"][user])
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Deletes Per Capita, Percentage",
+            "x_axis": who_deletes_most_per_capita["ordered_users"],
+            "y_axis": who_deletes_most_per_capita["ordered_edit_per_capita"],
+            "title": "User Deletes Per Capita, Num Users = " +  str(len(who_deletes_most_per_capita["ordered_users"]))
+        }
+        return graph_data
 
     def get_topic_edits_per_capita(self):
         """Update and return the per-capita edits by topic."""
@@ -397,7 +470,15 @@ class GenerateAnalytics():
         topic_edits_per_capita["ordered_topics"] = sorted(topic_edits_per_capita["topics"], key = topic_edits_per_capita["topics"].get, reverse=True)
         for user in topic_edits_per_capita["ordered_topics"]:
             topic_edits_per_capita["ordered_edit_per_capita"].append(topic_edits_per_capita["topics"][user])
-        return topic_edits_per_capita
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Deletes Per Capita, Percentage",
+            "x_axis": topic_edits_per_capita["ordered_topics"],
+            "y_axis": topic_edits_per_capita["ordered_edit_per_capita"],
+            "title": "Topic Edits Per Capita, Num Topics = " +  str(len(topic_edits_per_capita["ordered_topics"]))
+        }
+        return graph_data
     
     def get_topic_deletes_per_capita(self):
         """Update and return the per-capita deletes by topic."""
@@ -411,8 +492,17 @@ class GenerateAnalytics():
         topic_deletes_per_capita["ordered_topics"] = sorted(topic_deletes_per_capita["topics"], key = topic_deletes_per_capita["topics"].get, reverse=True)
         for user in topic_deletes_per_capita["ordered_topics"]:
             topic_deletes_per_capita["ordered_edit_per_capita"].append(topic_deletes_per_capita["topics"][user])
-        return topic_deletes_per_capita
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Deletes Per Capita, Percentage",
+            "x_axis": topic_deletes_per_capita["ordered_topics"],
+            "y_axis": topic_deletes_per_capita["ordered_edit_per_capita"],
+            "title": "Topic Deletes Per Capita, Num Topics = " +  str(len(topic_deletes_per_capita["ordered_topics"]))
+        }
+        return graph_data
 
+    # TODO Move this method somewhere else
     def get_top_domains(self):
         """Update list of most-popular top-level domains linked in text chat."""
         mah_urls = []
@@ -438,7 +528,7 @@ class GenerateAnalytics():
         for url in top_domains["top_domains_sorted"]:
             top_domains["num_times_repeated"].append(top_domains["URLs"][url])
     
-    
+    # This needs to be in a seperate class, an interactive one
     def get_reaction_type_popularity_per_user(self, user):
         """Returns/updates the popularity of a given reaction type by their username"""
         user_used_reactions = {"users_reactions":{}, "reactions_ordered":[]}
@@ -448,9 +538,24 @@ class GenerateAnalytics():
                 user_used_reactions["users_reactions"][reaction.reaction_body] = 1
             else:
                 user_used_reactions["users_reactions"][reaction.reaction_body] += 1
-        user_used_reactions["reactions_ordered"] = sorted(user_used_reactions["users_reactions"], key = user_used_reactions["users_reactions"].get, reverse=True)
-        return user_used_reactions
+        user_used_reactions["reactions_ordered"] = sorted(
+            user_used_reactions["users_reactions"],
+            key = user_used_reactions["users_reactions"].get, 
+            reverse=True)
+        y_axis = []
+        for item in user_used_reactions["reactions_ordered"]:
+            y_axis.append(user_used_reactions["users_reactions"][item])
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"Users",
+            "y_label":"Deletes Per Capita, Percentage",
+            "x_axis": user_used_reactions["reactions_ordered"],
+            "y_axis": y_axis,
+            "title": "Reaction Type Popularity Per User, Num Users = " +  str(len(user_used_reactions["users_reactions"]))
+        }
+        return graph_data
 
+    # TODO Get rid of this, or provide a comment on why it exists
     def get_user_ids(self, user):
         """Get ID of a given user."""
         pass
@@ -500,6 +605,8 @@ class GeneratedAnalytics(GenerateAnalytics):
         self.reaction_per_message = self.get_reaction_per_message()
         self.reaction_sent_per_user = self.get_reaction_sent_per_user()
         self.reaction_type_popularity = self.get_reaction_type_popularity()
+        self.user_sent_most_reactions = self.get_user_sent_most_reactions()
+        self.user_recieved_most_reactions = self.get_user_recieved_most_reactions()
         self.edits_per_user = self.get_edits_per_user()
         self.edits_per_topic = self.get_edits_per_topic()
         self.deletes_per_user = self.get_deletes_per_user()
