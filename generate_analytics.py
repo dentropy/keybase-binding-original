@@ -142,7 +142,15 @@ class GenerateAnalytics():
         for item in list_of_users:
             messages_per_user["user"].append(item)
             messages_per_user["messages_per_user"].append(tmp_messages_per_user[item])
-        return messages_per_user
+        graph_characters_per_topic = {
+            "type":"Show X Axis",
+            "x_label":"user",
+            "y_label":"messages_per_user",
+            "x_axis":messages_per_user["user"],
+            "y_axis":messages_per_user["messages_per_user"],
+            "title": "Messages Per User, Num Users = " + str(len(messages_per_user["messages_per_user"]))
+        }
+        return graph_characters_per_topic
 
     def get_messages_per_topic(self):
         """Update and return total number of messages posted in each topic."""
@@ -156,7 +164,15 @@ class GenerateAnalytics():
         for item in list_of_users:
             messages_per_topic["topic"].append(item)
             messages_per_topic["messages_per_topic"].append(tmp_messages_per_topic[item])
-        return messages_per_topic
+        graph_messages_per_topic = {
+            "type":"Show X Axis",
+            "x_label":"topic",
+            "y_label":"messages_per_topic",
+            "x_axis":messages_per_topic["topic"],
+            "y_axis":messages_per_topic["messages_per_topic"],
+            "title": "Messages Per Topic, Num Topics = " + str(len(messages_per_topic["topic"]))
+        }
+        return graph_messages_per_topic
 
     def get_number_users_per_topic(self):
         """Update and return the number of users for each topic."""
@@ -171,9 +187,17 @@ class GenerateAnalytics():
         for item in list_of_users:
             number_users_per_topic["users_list"].append(item)
             number_users_per_topic["topics_list"].append(messages_per_topic[item])
-        return number_users_per_topic
+        graph_number_users_per_topic = {
+            "type":"Show X Axis",
+            "x_label":"users_list",
+            "y_label":"topics_list",
+            "x_axis":number_users_per_topic["users_list"],
+            "y_axis":number_users_per_topic["topics_list"],
+            "title": "Number of User per Topic, Num Topics = " + str(len(number_users_per_topic["topics_list"]))
+        }
+        return graph_number_users_per_topic
 
-
+    # TODO Move this functon somewhere else
     def get_reaction_per_message(self):
         """Update the reactions to each message."""
         messages = {}
@@ -211,9 +235,21 @@ class GenerateAnalytics():
                 reaction_popularity_map["reactions"][reaction.reaction_body] = 1
             else:
                 reaction_popularity_map["reactions"][reaction.reaction_body] += 1
-        reaction_popularity_map["sorted"] = sorted(reaction_popularity_map["reactions"], key = reaction_popularity_map["reactions"].get, reverse=True), 
-        return reaction_popularity_map
+        reaction_popularity_map["sorted"] = sorted(reaction_popularity_map["reactions"], key = reaction_popularity_map["reactions"].get, reverse=True)
+        y_axis = []
+        for item in reaction_popularity_map["sorted"]:
+            y_axis.append(reaction_popularity_map["reactions"][item])
+        graph_data = {
+            "type":"Show X Axis",
+            "x_label":"reaction",
+            "y_label":"number of times reaction used",
+            "x_axis":reaction_popularity_map["sorted"],
+            "y_axis":y_axis,
+            "title": "Reaction Popularity"
+        }
+        return graph_data
 
+    # TODO Move this somewhere else, or make it more generalized
     def get_reaction_poplarity_topic(self, topic):
         """Get popularity of all reactions in a specific topic."""
         reaction_popularity = {"reactions":{}, "list":[]}
@@ -227,6 +263,7 @@ class GenerateAnalytics():
         reaction_popularity["list"] = sorted(reaction_popularity["reactions"], key = reaction_popularity["reactions"].get, reverse=True)
         return reaction_popularity
 
+    
     def get_all_user_message_id(self, user):
         """For a specific user, return all message IDs involving that user."""
         user_messages = {"text":[], "reaction":[], "attachment":[]}
@@ -247,7 +284,10 @@ class GenerateAnalytics():
         for user in self.user_list:
             mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
             reactions_per_user["users_reactions"][user] = mah_messages.count()
-        reactions_per_user["users_ordered"] = sorted(self.reactions_per_user["users_reactions"], key = self.reactions_per_user["users_reactions"].get, reverse=True)
+        reactions_per_user["users_ordered"] = sorted(
+            self.reactions_per_user["users_reactions"], 
+            key = self.reactions_per_user["users_reactions"].get, 
+            reverse=True)
         return reactions_per_user
 
     def get_user_recieved_most_reactions(self):
@@ -260,7 +300,10 @@ class GenerateAnalytics():
                 recieved_most_reactions["users_reactions"][mah_message.from_user] = 1
             else:
                 recieved_most_reactions["users_reactions"][mah_message.from_user] += 1
-        recieved_most_reactions["users_orderd"] = sorted(self.recieved_most_reactions["users_reactions"], key = self.recieved_most_reactions["users_reactions"].get, reverse=True)
+        recieved_most_reactions["users_orderd"] = sorted(
+            self.recieved_most_reactions["users_reactions"], 
+            key = self.recieved_most_reactions["users_reactions"].get, 
+            reverse=True)
         return recieved_most_reactions
 
                                
