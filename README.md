@@ -11,6 +11,15 @@ This repository contains code for Python3, Matlab, and Obsidian, which can be us
 
 ### Requirements
 
+## Getting up and running
+
+``` bash
+# Install the dependencies
+pip3 install jupyter pandas joypy sqlalchemy matplotlib tld URLExtract
+# From within the keybase-binding directory
+python3 create_export_examply.py
+```
+
 #### Python 3 ####
 
 * [`Anaconda` data science tool box](https://www.anaconda.com/products/individual), with the following packages installed:
@@ -22,10 +31,6 @@ This repository contains code for Python3, Matlab, and Obsidian, which can be us
   * [`pandas`]
   * [`tld`](https://pypi.org/project/tld/): Python package for extracting top-level domain (TLD) from text.
   * [`URLExtract`](https://pypi.org/project/urlextract/): Python package for extracting URLs based on TLD.
-
-``` bash
-pip3 install jupyter pandas joypy sqlalchemy matplotlib tld URLExtract
-```
 
 #### MATLAB ####
 
