@@ -1,4 +1,4 @@
-from modules.GenerateAnalytics import GenerateAnalytics
+from modules.KeybaseAnalytics import KeybaseAnalytics
 from database import DB, Messages
 from sqlalchemy import func, asc
 from datetime import *
@@ -8,7 +8,7 @@ import pandas as pd
 import calmap
 # -4 hours for EST
 
-class TimeAnalytics(GenerateAnalytics):
+class TimeAnalytics(KeybaseAnalytics):
     def __init__(self, db_url):
         """TimeAnalytics class constructor."""
         self.db = DB(db_url)
@@ -88,3 +88,34 @@ class TimeAnalytics(GenerateAnalytics):
         events = pd.Series(np.random.randn(len(days)), index=time_list)
         plt.figure(figsize=(20, 2.3))
         calmap.yearplot(events, year=2020, daylabels='MTWTFSS')
+
+    def get_message_data_frames(self, offset_time=0):
+        """Return Pandas data frame table."""
+        text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
+        message_data = {
+            "user": [],
+            "msg_id": [],
+            "time": [],
+            "team": [],
+            "topic": [],
+            "text": [],
+            "word_count": []
+        }
+        cu = pd.DataFrame(data=self.get_characters_per_user())
+        mu = pd.DataFrame(data=self.get_messages_per_user())
+        ct = pd.DataFrame(data=self.get_characters_per_topic())
+        mt = pd.DataFrame(data=self.get_messages_per_topic())
+        for msg in text_messages:
+            message_data["user"].append(msg.from_user)
+            message_data["msg_id"].append(msg.msg_id)
+            message_data["time"].append((msg.sent_time - datetime(1970, 1, 1)).total_seconds()-offset_time)
+            message_data["team"].append(msg.team)
+            message_data["topic"].append(msg.topic)
+            message_data["text"].append(msg.txt_body)
+            message_data["word_count"].append(msg.word_count)
+        df = pd.DataFrame(data=message_data)
+        df = pd.merge(df, cu, on="user", how="left")
+        df = pd.merge(df, mu, on="user", how="left")
+        df = pd.merge(df, ct, on="topic", how="left")
+        pandas_table = pd.merge(df, mt, on="topic", how="left")
+        return pandas_table

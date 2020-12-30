@@ -1,99 +1,17 @@
+from modules.KeybaseAnalytics import KeybaseAnalytics
 from database import DB, Messages
-from sqlalchemy import func, asc
+from sqlalchemy import func, asc, distinct
 import pandas as pd
-from datetime import *
-from sqlalchemy import distinct
 from urlextract import URLExtract
 from tld import get_fld
 import json
 import pprint
-class GenerateAnalytics():
+class GeneralAnalytics(KeybaseAnalytics):
     def __init__(self, db_url):
         """GeneratedAnalytics class constructor."""
         self.db = DB(db_url)
         self.user_list = self.get_list_all_users()
         self.topic_list = self.get_list_all_topics()
-        
-    def get_message(self, message_id):
-        """Returns a single row from Message object (SQL table) by ID."""
-        return self.db.session.query(Messages).get(message_id)
-
-    def get_all_team_messages(self, team):
-        """Get all messages from a single team."""
-        return self.db.session.query(Messages)\
-            .order_by(asc(Messages.sent_time))\
-            .filter(Messages.msg_type == "text")\
-            .filter(Messages.team == team)
-
-    def get_all_user_messages(self, user):
-        """Get all messages from a single user."""
-        return self.db.session.query(Messages)\
-            .order_by(asc(Messages.sent_time))\
-            .filter(Messages.txt_body != None)\
-            .filter(Messages.msg_type == "text")\
-            .filter(Messages.from_user == user)
-
-    def get_all_topic_messages(self, team, topic):
-        """Get all messages from single topic from a specific team."""
-        return self.db.session.query(Messages)\
-            .order_by(asc(Messages.sent_time))\
-            .filter(Messages.txt_body != None)\
-            .filter(Messages.msg_type == "text")\
-            .filter(Messages.team == team)\
-            .filter(Messages.from_user == topic)
-
-    def get_user_messages_from_team(self, team_name, username):
-        """Get all messages from a single user on a single team."""
-        return self.db.session.query(Messages)\
-            .order_by(asc(Messages.sent_time))\
-            .filter(Messages.txt_body != None)\
-            .filter(Messages.msg_type == "text")\
-            .filter(Messages.team == team_name)\
-            .filter(Messages.from_user == user)
-
-    def get_num_messages_from_user(self, username):
-        """Return object with number of times a text was edited or deleted for a given user."""
-        return_object = {}
-        return_object["text"] = self.db.session.query(Messages).\
-            filter(Messages.from_user == username).\
-            filter(Messages.msg_type == "text").count()
-        return_object["edit"] = self.db.session.query(Messages).\
-            filter(Messages.from_user == username).\
-            filter(Messages.msg_type == "edit").count()
-        return_object["delete"] = self.db.session.query(Messages).\
-            filter(Messages.from_user == username).\
-            filter(Messages.msg_type == "delete").count()
-        return return_object
-    
-    def get_num_messages_from_topic(self, topic):
-        """Return object with number of times a text was edited or deleted for a given topic."""
-        return_object = {}
-        return_object["text"] = self.db.session.query(Messages).\
-            filter(Messages.topic == topic).\
-            filter(Messages.msg_type == "text").count()
-        return_object["edit"] = self.db.session.query(Messages).\
-            filter(Messages.topic == topic).\
-            filter(Messages.msg_type == "edit").count()
-        return_object["delete"] = self.db.session.query(Messages).\
-            filter(Messages.topic == topic).\
-            filter(Messages.msg_type == "delete").count()
-        return return_object
-            
-    def get_list_all_users(self):
-        """Update and return list of all users."""
-        individual_users = self.db.session.query(distinct(Messages.from_user))
-        user_list = []
-        for user in individual_users:
-            user_list.append(user[0])
-        return user_list
-
-    def get_list_all_topics(self):
-        """Update and return list of all topics."""
-        individual_topic = self.db.session.query(distinct(Messages.topic))
-        topic_list = []
-        for topic in individual_topic:
-            topic_list.append(topic[0])
-        return topic_list
 
     def get_characters_per_user(self):
         """Update and return total number of characters from messages for each user."""
@@ -260,34 +178,6 @@ class GenerateAnalytics():
         }
         return graph_data
 
-    # TODO Move this somewhere else, or make it more generalized
-    def get_reaction_poplarity_topic(self, topic):
-        """Get popularity of all reactions in a specific topic."""
-        reaction_popularity = {"reactions":{}, "list":[]}
-        reaction_messages = self.db.session.query(Messages.reaction_body).filter(Messages.topic == topic).\
-            filter(Messages.msg_type == "reaction")
-        for reaction in reaction_messages:
-            if reaction[0] not in reaction_popularity["reactions"]:
-                reaction_popularity["reactions"][reaction[0]] = 1
-            else:
-                reaction_popularity["reactions"][reaction[0]] += 1
-        reaction_popularity["list"] = sorted(reaction_popularity["reactions"], key = reaction_popularity["reactions"].get, reverse=True)
-        return reaction_popularity
-
-    # Move this somewhere else
-    def get_all_user_message_id(self, user):
-        """For a specific user, return all message IDs involving that user."""
-        user_messages = {"text":[], "reaction":[], "attachment":[]}
-        mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "text")
-        for message in mah_messages:
-            user_messages["text"].append(message.id)
-        mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
-        for message in mah_messages:
-            user_messages["reaction"].append(message.id)
-        mah_messages = self.db.session.query(Messages.id).filter(Messages.from_user == user).filter(Messages.msg_type == "attachment")
-        for message in mah_messages:
-            user_messages["attachment"].append(message.id)
-        return user_messages
 
     def get_user_sent_most_reactions(self):
         """Return the sorted user by most number of reactions issued."""
@@ -539,70 +429,9 @@ class GenerateAnalytics():
         for url in top_domains["top_domains_sorted"]:
             top_domains["num_times_repeated"].append(top_domains["URLs"][url])
     
-    # This needs to be in a seperate class, an interactive one
-    def get_reaction_type_popularity_per_user(self, user):
-        """Returns/updates the popularity of a given reaction type by their username"""
-        user_used_reactions = {"users_reactions":{}, "reactions_ordered":[]}
-        mah_reactions = self.db.session.query(Messages).filter(Messages.from_user == user).filter(Messages.msg_type == "reaction")
-        for reaction in mah_reactions:
-            if reaction.reaction_body not in user_used_reactions["users_reactions"]:
-                user_used_reactions["users_reactions"][reaction.reaction_body] = 1
-            else:
-                user_used_reactions["users_reactions"][reaction.reaction_body] += 1
-        user_used_reactions["reactions_ordered"] = sorted(
-            user_used_reactions["users_reactions"],
-            key = user_used_reactions["users_reactions"].get, 
-            reverse=True)
-        y_axis = []
-        for item in user_used_reactions["reactions_ordered"]:
-            y_axis.append(user_used_reactions["users_reactions"][item])
-        graph_data = {
-            "type":"Show X Axis",
-            "x_label":"Users",
-            "y_label":"Deletes Per Capita, Percentage",
-            "x_axis": user_used_reactions["reactions_ordered"],
-            "y_axis": y_axis,
-            "title": "Reaction Type Popularity Per User, Num Users = " +  str(len(user_used_reactions["users_reactions"]))
-        }
-        return graph_data
 
-    # TODO Get rid of this, or provide a comment on why it exists
-    def get_user_ids(self, user):
-        """Get ID of a given user."""
-        pass
-    
-    def get_message_data_frames(self, offset_time=0):
-        """Return Pandas data frame table."""
-        text_messages = self.db.session.query(Messages).filter(Messages.msg_type == "text")
-        message_data = {
-            "user": [],
-            "msg_id": [],
-            "time": [],
-            "team": [],
-            "topic": [],
-            "text": [],
-            "word_count": []
-        }
-        cu = pd.DataFrame(data=self.get_characters_per_user())
-        mu = pd.DataFrame(data=self.get_messages_per_user())
-        ct = pd.DataFrame(data=self.get_characters_per_topic())
-        mt = pd.DataFrame(data=self.get_messages_per_topic())
-        for msg in text_messages:
-            message_data["user"].append(msg.from_user)
-            message_data["msg_id"].append(msg.msg_id)
-            message_data["time"].append((msg.sent_time - datetime(1970, 1, 1)).total_seconds()-offset_time)
-            message_data["team"].append(msg.team)
-            message_data["topic"].append(msg.topic)
-            message_data["text"].append(msg.txt_body)
-            message_data["word_count"].append(msg.word_count)
-        df = pd.DataFrame(data=message_data)
-        df = pd.merge(df, cu, on="user", how="left")
-        df = pd.merge(df, mu, on="user", how="left")
-        df = pd.merge(df, ct, on="topic", how="left")
-        pandas_table = pd.merge(df, mt, on="topic", how="left")
-        return pandas_table
 
-class GeneratedAnalytics(GenerateAnalytics):
+class GeneratedGeneralAnalytics(GeneralAnalytics):
     def __init__(self, db_url):
         self.db = DB(db_url)
         self.user_list = self.get_list_all_users()
