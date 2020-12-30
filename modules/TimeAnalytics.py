@@ -1,4 +1,4 @@
-from GenerateAnalytics import GenerateAnalytics
+from modules.GenerateAnalytics import GenerateAnalytics
 from database import DB, Messages
 from sqlalchemy import func, asc
 from datetime import *
