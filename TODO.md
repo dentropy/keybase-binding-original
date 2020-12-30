@@ -1,9 +1,9 @@
 ## TODO
 
-- [ ] Rename GenerateAnalytics into KeybaseAnalytics and MessageAnalytics
-- [ ] Put all classes in modules folder
+- [✅] Put all classes in modules folder
+- [✅] Break Generate Analytics into more classes
+- [✅] Rename GenerateAnalytics into KeybaseAnalytics and MessageAnalytics
 - [ ] create_export_example.py should take a list of teams to export
-- [ ] Break Generate Analytics into more classes
 - [ ] Document how to setup cron_export
 - [ ] Add calmap to dependencies or replace it
 - [ ] *Fix public/private scoping on class properties and methods.*
