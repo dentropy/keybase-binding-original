@@ -1,4 +1,5 @@
 from modules.KeybaseAnalytics import KeybaseAnalytics
+from database import DB, Messages
 class UserAnalytics(KeybaseAnalytics):
     # Move this somewhere else
     def get_all_user_message_id(self, user):
@@ -41,3 +42,8 @@ class UserAnalytics(KeybaseAnalytics):
             "title": "Reaction Type Popularity Per User, Num Users = " +  str(len(user_used_reactions["users_reactions"]))
         }
         return graph_data
+    
+    
+    def get_all_links_from_user(self, user):
+        user_links = self.db.session.query(Messages).filter(Messages.from_user == user).filter(Messages.num_urls != None)
+        return user_links

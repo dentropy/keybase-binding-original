@@ -16,9 +16,15 @@ This repository contains code for Python3, Matlab, and Obsidian, which can be us
 ``` bash
 # Install the dependencies
 pip3 install jupyter jupyterlab pandas joypy sqlalchemy matplotlib tld URLExtract calmap
+
 # From within the keybase-binding directory
 python3 create_export_examply.py
 # To export another team modify line 4 in create_export_examply.py
+
+# Development environment
+jupyter nbextension enable --py widgetsnbextension
+jupyter labextension install @jupyter-widgets/jupyterlab-manager
+pip install --upgrade jupyterlab jupyterlab-git
 ```
 
 #### Python 3 ####
