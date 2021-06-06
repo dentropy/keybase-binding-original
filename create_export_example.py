@@ -1,7 +1,7 @@
 from database import Messages, Users
-from create_export import ExportKeybase
+from modules.ExportKeybase import ExportKeybase
 
-keybase_team = "complexweekend.oct2020" # Change this to export a different team
+keybase_team = "dentropydaemon" # Change this to export a different team
 print("Creating Keybase database export object...")
 ex_key = ExportKeybase()
 print("Exporting JSON file...")
