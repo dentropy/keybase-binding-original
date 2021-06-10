@@ -452,3 +452,17 @@ class ExportKeybase():
                 mah_missing_messages[topic_name] = missing_messages
                 self.get_root_messages(missing_messages,db)
         return mah_missing_messages
+
+    def get_personal_chats():
+        # keybase chat api -m '{"method": "list"}'
+        pass
+
+    def export_personal_chat():
+        pass
+
+    def export_file_from_chat():
+        pass
+
+    def get_git_repos():
+        # keybase git list
+        pass 
