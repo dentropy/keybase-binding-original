@@ -1,6 +1,6 @@
 // Requiring users file
 const fs = require('fs');
-const users = require("./complexweekend.oct2020-messages.json");
+const users = require("./exports/dentropydaemon-messages.json");
   
 console.log(users);
 
