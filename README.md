@@ -18,7 +18,7 @@ This repository contains code for Python3, Matlab, and Obsidian, which can be us
 pip3 install jupyter jupyterlab pandas joypy sqlalchemy matplotlib tld URLExtract calmap
 
 # From within the keybase-binding directory
-python3 create_export_examply.py
+python3 create_export_example.py
 # To export another team modify line 4 in create_export_examply.py
 
 # Development environment

@@ -453,11 +453,13 @@ class ExportKeybase():
                 self.get_root_messages(missing_messages,db)
         return mah_missing_messages
 
-    def get_personal_chats():
+    def get_personal_chats(self):
         # keybase chat api -m '{"method": "list"}'
-        pass
+        response = subprocess.check_output(["keybase", "chat", "api", "-m" ,'{"method": "list"}'])
+        user_data = json.loads(response.decode('utf-8'))
+        return user_data
 
-    def export_personal_chat():
+    def export_personal_chat(self):
         pass
 
     def export_file_from_chat():

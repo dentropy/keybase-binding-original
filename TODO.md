@@ -13,7 +13,11 @@
 - [ ] *Use something like the `plotly` package to turn existing `Jupyter` notebooks into embeddable (or linkable) dashboards, which can then be accessed from the **[wiki](https://wiki.dentropydaemon.io/Dashboards)**, embedded in a local application, or hosted elsewhere?*
 - [ ] *Record in database if reaction, or edit message was deleted*
 - [ ] **Real time export / Sync up without full export** using pykeybasebot
-
+- CLI
+- Export personal messages
+- Export attachments
+- Export files
+- Export git repos
 ## Bugs
 
 - [ ] Exporting User Metadata for complexweekend.oct2020 produced an error, use try and catch blocks and say that the user does not work
