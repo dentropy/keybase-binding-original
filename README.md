@@ -1,6 +1,9 @@
 # `Keybase` Text Chat Data
 
 This repository contains code for Python3, Matlab, and Obsidian, which can be used to access the `Keybase` text chat API, scrape user metadata and text message information, perform analyses on that data, and visualize the resulting social network graph.
+## Docs
+
+[Docs - Dendron](https://wiki.dentropydaemon.io/notes/hoJ8t43aDT75r9xidjMBX.html)
 
 ## [TODO](./TODO.md)
 
