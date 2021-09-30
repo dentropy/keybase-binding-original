@@ -43,72 +43,54 @@ async function export_team_memberships(tmp_file_output){
 
 //     return team_memberships
 // }
-async function get_team_topics(tmp_team_name){
-    let keybase_team_topics_cmd_str = {
-        "method": "listconvsonname",
-        "params": {
-            "options": {
-                "topic_type": "CHAT",
-                "members_type": "team",
-                "name": tmp_team_name
-            }
-        }
+
+async function get_keybase_topic_page(tmp_channel_name, tmp_members_type, tmp_topic_name, tmp_pagiation_next){
+    let keybase_topic_messages_cmd_str = {
+         "method": "read",
+         "params": {
+             "options": {
+                 "channel": {
+                     "name": tmp_channel_name,
+                     "members_type": tmp_members_type,
+                     "topic_name": tmp_topic_name
+                 },
+                 "pagination": {
+                     "num": 270
+                 }
+             }
+         }
+     }
+     if (tmp_pagiation_next != undefined) {
+         keybase_topic_messages_cmd_str.params.options.pagination.next = tmp_pagiation_next
+     }
+     let cmd_json_string = JSON.stringify(keybase_topic_messages_cmd_str)
+     let command = ["keybase", "chat", "api", "-m", "'"+cmd_json_string+"'"].join(' ')
+     // console.log(command)
+     let response_object = await JSON.parse(execSync(command).toString("utf8"))
+     return response_object
+ }
+
+async function get_keybase_topic(tmp_channel_name, tmp_members_type, tmp_topic_name){
+    let recursive_messages = await get_keybase_topic_page(tmp_channel_name, tmp_members_type, tmp_topic_name)
+    let topic_messages = []
+    recursive_messages.result.messages.forEach((message) => {
+        topic_messages.push(message)
+    })
+    while (  !(Object.keys(recursive_messages.result.pagination).indexOf("last") >= 0)  ){
+        console.log(recursive_messages)
+        recursive_messages = await get_keybase_topic_page(tmp_channel_name, tmp_members_type, tmp_topic_name, recursive_messages.result.pagination.next)
+        recursive_messages.result.messages.forEach((message) => {
+            topic_messages.push(message)
+        })
     }
-    let cmd_json_string = JSON.stringify(keybase_team_topics_cmd_str)
-    let command = ["keybase", "chat", "api", "-m", "'"+cmd_json_string+"'"].join(' ')
-    let response_object = await JSON.parse(execSync(command).toString("utf8"))
-    return response_object
+    return topic_messages
 }
 
-async function get_keybase_topic(tmp_channel_name, tmp_members_type, tmp_topic_name, tmp_pagiation_next){
-   let keybase_topic_messages_cmd_str = {
-        "method": "read",
-        "params": {
-            "options": {
-                "channel": {
-                    "name": tmp_channel_name,
-                    "members_type": tmp_members_type,
-                    "topic_name": tmp_topic_name
-                },
-                "pagination": {
-                    "num": 128
-                }
-            }
-        }
-    }
-    if (tmp_pagiation_next != undefined) {
-        keybase_topic_messages_cmd_str.params.options.pagination.next = tmp_pagiation_next
-    }
-    let cmd_json_string = JSON.stringify(keybase_topic_messages_cmd_str)
-    let command = ["keybase", "chat", "api", "-m", "'"+cmd_json_string+"'"].join(' ')
-    console.log(command)
-    let response_object = await JSON.parse(execSync(command).toString("utf8"))
-    return response_object
-}
-
-async function export_keybase_topic(tmp_file_output, tmp_channel_name, tmp_members_type, tmp_topic_name){
-    let messages = await get_keybase_topic(tmp_channel_name, tmp_members_type, tmp_topic_name)
-    while (!messages.result.pagination.last){
-        messages = await get_keybase_topic(tmp_channel_name, tmp_members_type, tmp_topic_name, messages.result.pagination.last.next)
-    }
-    fs.writeFileSync(tmp_file_output, JSON.stringify(messages), (err) => {
-        if (err) {
-            throw err;
-        }
-        console.log(`Channel ${tmp_channel_name} topic ${tmp_topic_name} messages are saved to ${tmp_file_output}.`);
-    });
-}
-
-async function get_method_list(tmp_file_output){
+async function get_method_list(){
     let cmd_json_string = JSON.stringify({"method": "list"})
     let command = ["keybase", "chat", "api", "-m", "'"+cmd_json_string+"'"].join(' ')
     let response_object = JSON.parse(execSync(command).toString("utf8"))
-    fs.writeFileSync(tmp_file_output, JSON.stringify(response_object), (err) => {
-        if (err) {
-            throw err;
-        }
-        console.log(`team_memberships is saved to ${tmp_file_output}.`);
-    });
+    return response_object
 }
 
 async function get_keybase_user(){
@@ -136,77 +118,100 @@ async function create_folder_if_not_exist(create_folder_name){
     }
 }
 
+
+async function setup_folders(export_dir, keybase_user, team_memberships){
+    create_folder_if_not_exist(`${export_dir}/${keybase_user}`)
+    create_folder_if_not_exist(`${export_dir}/${keybase_user}/teams`)
+    for(var i = 0; i < team_memberships.length; i++){
+    }
+
+}
+
+async function get_team_topics(export_dir, keybase_user, team_name){
+    let topic_file_name = `${export_dir}/${keybase_user}/teams/${team_name}/topics.json`
+    if (  fs.existsSync(`${export_dir}/${keybase_user}/teams/${team_name}/topics.json`)  ) {
+        return JSON.parse(await fs.readFileSync(topic_file_name, 'utf8'))
+    }
+    else {
+        let team_topics;
+        create_folder_if_not_exist(`${export_dir}/${keybase_user}/teams/${team_name}`)
+        let keybase_team_topics_cmd_str = {
+            "method": "listconvsonname",
+            "params": {
+                "options": {
+                    "topic_type": "CHAT",
+                    "members_type": "team",
+                    "name": team_name
+                }
+            }
+        }
+        let cmd_json_string = JSON.stringify(keybase_team_topics_cmd_str)
+        let command = ["keybase", "chat", "api", "-m", "'"+cmd_json_string+"'"].join(' ')
+        team_topics = await JSON.parse(execSync(command).toString("utf8"))
+        fs.writeFileSync(
+            topic_file_name, 
+            JSON.stringify(team_topics),
+        (err) => {
+            if (err) {
+                throw err;
+            }
+            console.log(`team_memberships is saved to ${topic_file_name}.`);
+        });
+        return team_topics
+    }
+}
+
+
+
+async function get_team_messages(){
+
+}
 async function main() {
     let keybase_user;
     let export_dir = "./exports"
-    let team_memberships = [];
-    let method_list;
     keybase_user = await get_keybase_user()
     console.log(`Currently logged in as ${keybase_user}`)
-    // Create folder for user if it does not exist
+    // Create folder for user and their teams if it does not exist
     create_folder_if_not_exist(`${export_dir}/${keybase_user}`)
     create_folder_if_not_exist(`${export_dir}/${keybase_user}/teams`)
+    // // Currently method_list is not used for anything
+    // let method_list = get_method_list()
+    // fs.writeFileSync(`${export_dir}/${keybase_user}/method_list.json`, JSON.stringify(method_list), (err) => {
+    //     if (err) {
+    //         throw err;
+    //     }
+    //     console.log(`team_memberships is saved to ${tmp_file_output}.`);
+    // });
     // Export / Import list of teams user is on
-    // let team_memberships_file = `./${export_dir}/${keybase_user}/team_memberships.json`
-    // if (fs.existsSync(team_memberships_file)) {
-    //     var input = await question('Use existing team_memberships export (y or n)? ')
-    //     if (input.match(/^y(es)?$/i)) { 
-    //         console.log("Using existing team memberships")
-    //         team_memberships = await JSON.parse(fs.readFileSync(team_memberships_file, 'utf8'));
-    //     }
-    //     else {
-    //         console.log("Creating a new export")
-    //         team_memberships = await export_team_memberships(team_memberships_file)
-    //     }
-    // }
-    // else {
-    //     team_memberships = await export_team_memberships(team_memberships_file)
-    // }
-    // console.log(`${team_memberships.length} teams were imported`)
-    // let method_list_file = `./${export_dir}/${keybase_user}/method_list.json`
-    // if (fs.existsSync(method_list_file)) {
-    //     var input = await question('Use existing method_list export (y or n)? ')
-    //     if (input.match(/^y(es)?$/i)) { 
-    //         console.log("Using existing team memberships")
-    //         team_memberships = await JSON.parse(fs.readFileSync(method_list_file, 'utf8'));
-    //     }
-    //     else {
-    //         console.log("Creating a new export")
-    //         team_memberships = await get_method_list(method_list_file)
-    //     }
-    // }
-    // else {
-    //     team_memberships = await get_method_list(method_list_file)
-    // }
-    // get_keybase_topic(
-    //     `./${export_dir}/${keybase_user}/method_list.json`
-    // )
-    // get_keybase_topic(tmp_file_output, tmp_channel_name, tmp_members_type, tmp_topic_name, tmp_pagiation_next)
-    // await export_keybase_topic(
-    //     `${export_dir}/${keybase_user}/teams/dentropydaemon.json`,
-    //     "dentropydaemon",
-    //     "team",
-    //     "bot-testing"
-    // )
-    console.log(util.inspect(await get_team_topics("dentropydaemon"), {depth: null}));
+    let team_memberships = await export_team_memberships(`${export_dir}/${keybase_user}/team_memberships.json`)
+    console.log(`${team_memberships.length} teams were imported`)
+    // export_teams_topics_metadata(export_dir, keybase_user, team_memberships)
+    // Create a folder for every team, export the topics, plus export the messages
+    for(var i = 0; i < team_memberships.length; i++){
+        await get_team_topics(export_dir, keybase_user, team_memberships[i].Team)
+    }
 
-    // Create a folder for every team
-    // Export topic names for every team
-    // Export messages for every team
-    //   Add metadata to JSON such as, Num Reactions, Number of URL's, list of root domain for URL, URL's, Check Mentions
+    // Export all topics for a single team
+    let export_team_name = "dentropydaemon";
+    let team_topics = await get_team_topics(export_dir, keybase_user, export_team_name)
+    console.log(team_topics)
+    for(var i = 0; i < team_topics.result.conversations.length; i++){
+        let tmp_topic_messages = await get_keybase_topic(
+            team_topics.result.conversations[i].channel.name,
+            team_topics.result.conversations[i].channel.members_type,
+            team_topics.result.conversations[i].channel.topic_name
+        )
+        fs.writeFileSync(`${export_dir}/${keybase_user}/teams/${export_team_name}/${team_topics.result.conversations[i].channel.topic_name}.json`, JSON.stringify(tmp_topic_messages), (err) => {
+            if (err) {
+                throw err;
+            }
+            console.log(`export of topic ${team_topics.result.conversations[i].channel.topic_name} for team ${export_team_name} is saved in ${tmp_file_output}.`);
+        });
+    }
+    // Parse URL's
+    // Parse Domain Name's
+    // Connect Reactions
 
     process.exit(1)
-    // team_memberships = await get_team_memberships(`./${export_dir}/${keybase_user}/team_memberships.json`)
-    //console.log(team_memberships)
-    // if (team_memberships.length == 0){
-    //     console.log("Error, no teams in team_memberships file")
-    //     process.exit(1)
-    // }
-    // console.log(team_memberships)
-    // if (await check_for_user_folder()) {
-    //     create_user_folder()
-    // }
-    //get_team_memberships()
-
 }
 main()
