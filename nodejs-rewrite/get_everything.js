@@ -1,12 +1,12 @@
-
-import { exec, execSync, spawn } from 'child_process';
-import readline from 'readline';
-var rl = readline.createInterface(process.stdin, process.stdout);
-import util from 'util' 
-const question = util.promisify(rl.question).bind(rl);
 import fs from 'fs';
+import util from 'util' 
 import  extractUrls from "extract-urls";
 import extractDomain from "extract-domain";
+import { execSync } from 'child_process';
+import readline from 'readline';
+var rl = readline.createInterface(process.stdin, process.stdout);
+const question = util.promisify(rl.question).bind(rl);
+
 
 async function export_team_memberships(tmp_file_output){
     console.log("running get_team_memberships")
@@ -91,7 +91,6 @@ async function get_keybase_user(){
         console.log("Exiting now")
         process.exit(1)
     }
-
 }
 
 async function create_folder_if_not_exist(create_folder_name){
@@ -103,15 +102,6 @@ async function create_folder_if_not_exist(create_folder_name){
         fs.mkdirSync(create_folder_name)
         console.log(`${create_folder_name} directory created successfully!`);
     }
-}
-
-
-async function setup_folders(export_dir, keybase_user, team_memberships){
-    create_folder_if_not_exist(`${export_dir}/${keybase_user}`)
-    create_folder_if_not_exist(`${export_dir}/${keybase_user}/teams`)
-    for(var i = 0; i < team_memberships.length; i++){
-    }
-
 }
 
 async function get_team_topics(export_dir, keybase_user, team_name){
@@ -157,14 +147,14 @@ async function main() {
     // Create folder for user and their teams if it does not exist
     create_folder_if_not_exist(`${export_dir}/${keybase_user}`)
     create_folder_if_not_exist(`${export_dir}/${keybase_user}/teams`)
-    // // Currently method_list is not used for anything
-    // let method_list = get_method_list()
-    // fs.writeFileSync(`${export_dir}/${keybase_user}/method_list.json`, JSON.stringify(method_list), (err) => {
-    //     if (err) {
-    //         throw err;
-    //     }
-    //     console.log(`team_memberships is saved to ${tmp_file_output}.`);
-    // });
+    // Export method list, so it is easier to look at
+    let method_list = get_method_list()
+    fs.writeFileSync(`${export_dir}/${keybase_user}/method_list.json`, JSON.stringify(method_list), (err) => {
+        if (err) {
+            throw err;
+        }
+        console.log(`team_memberships is saved to ${tmp_file_output}.`);
+    });
     // Export / Import list of teams user is on
     let team_memberships = await export_team_memberships(`${export_dir}/${keybase_user}/team_memberships.json`)
     console.log(`${team_memberships.length} teams were imported`)
@@ -205,8 +195,7 @@ async function main() {
     }
     // Parse URL's
     // Parse Domain Name's
-    // Connect Reactions
-    // Export each team chat to a file
+    // Connect Reactions, Use Elastic Search
     // Export DM's to file
     // Export Git Repos to file 
 
