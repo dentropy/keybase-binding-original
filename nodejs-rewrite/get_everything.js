@@ -1,15 +1,12 @@
-import fs from 'fs';
+
 import { exec, execSync, spawn } from 'child_process';
 import readline from 'readline';
 var rl = readline.createInterface(process.stdin, process.stdout);
 import util from 'util' 
 const question = util.promisify(rl.question).bind(rl);
-
-// Export each team chat to a file
-
-// Export DM's to file
-
-// Export Git Repos to file
+import fs from 'fs';
+import  extractUrls from "extract-urls";
+import extractDomain from "extract-domain";
 
 async function export_team_memberships(tmp_file_output){
     console.log("running get_team_memberships")
@@ -33,16 +30,6 @@ async function export_team_memberships(tmp_file_output){
     });
     return team_memberships;
 }
-// async function get_team_memberships(tmp_file_output){
-//     let team_memberships;
-//     if (fs.existsSync(tmp_file_output)){
-//     }
-//     else {
-//         export_team_memberships(tmp_file_output)
-//     }
-
-//     return team_memberships
-// }
 
 async function get_keybase_topic_page(tmp_channel_name, tmp_members_type, tmp_topic_name, tmp_pagiation_next){
     let keybase_topic_messages_cmd_str = {
@@ -77,7 +64,7 @@ async function get_keybase_topic(tmp_channel_name, tmp_members_type, tmp_topic_n
         topic_messages.push(message)
     })
     while (  !(Object.keys(recursive_messages.result.pagination).indexOf("last") >= 0)  ){
-        console.log(recursive_messages)
+        // console.log(recursive_messages)
         recursive_messages = await get_keybase_topic_page(tmp_channel_name, tmp_members_type, tmp_topic_name, recursive_messages.result.pagination.next)
         recursive_messages.result.messages.forEach((message) => {
             topic_messages.push(message)
@@ -162,10 +149,6 @@ async function get_team_topics(export_dir, keybase_user, team_name){
 }
 
 
-
-async function get_team_messages(){
-
-}
 async function main() {
     let keybase_user;
     let export_dir = "./exports"
@@ -194,13 +177,25 @@ async function main() {
     // Export all topics for a single team
     let export_team_name = "dentropydaemon";
     let team_topics = await get_team_topics(export_dir, keybase_user, export_team_name)
-    console.log(team_topics)
+    //console.log(team_topics)
     for(var i = 0; i < team_topics.result.conversations.length; i++){
         let tmp_topic_messages = await get_keybase_topic(
             team_topics.result.conversations[i].channel.name,
             team_topics.result.conversations[i].channel.members_type,
             team_topics.result.conversations[i].channel.topic_name
         )
+        tmp_topic_messages.forEach((element) => {
+            if (element.msg.content.type == "text"){
+                var urls = extractUrls(element.msg.content.text.body, true);
+                if (urls != undefined){
+                    console.log(urls)
+                    element.msg.urls = urls
+                    element.msg.url_num = urls.length
+                    element.msg.domains = [ ...new Set(extractDomain(urls))]
+                    element.msg.domains_num = element.msg.domains.length
+                }
+            }
+        })
         fs.writeFileSync(`${export_dir}/${keybase_user}/teams/${export_team_name}/${team_topics.result.conversations[i].channel.topic_name}.json`, JSON.stringify(tmp_topic_messages), (err) => {
             if (err) {
                 throw err;
@@ -211,6 +206,9 @@ async function main() {
     // Parse URL's
     // Parse Domain Name's
     // Connect Reactions
+    // Export each team chat to a file
+    // Export DM's to file
+    // Export Git Repos to file 
 
     process.exit(1)
 }
